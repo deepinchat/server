@@ -6,20 +6,12 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace Deepin.Chatting.API.EventHandling;
 
-public class SendMessageIntegrationEventHandler(ILogger<SendMessageIntegrationEventHandler> logger, IHubContext<ChatsHub> chatsHub) : IIntegrationEventHandler<SendMessageIntegrationEvent>
+public class SendMessageIntegrationEventHandler(ILogger<SendMessageIntegrationEventHandler> logger, IHubContext<ChatsHub> chatsHub)
+: IntegrationEventHandler<SendMessageIntegrationEvent>(logger)
 {
-    private readonly ILogger<SendMessageIntegrationEventHandler> _logger = logger;
-    private readonly IHubContext<ChatsHub> _chatsHub = chatsHub;
-    public async Task Consume(ConsumeContext<SendMessageIntegrationEvent> context)
+
+    public override async Task HandleAsync(SendMessageIntegrationEvent @event, CancellationToken cancellationToken)
     {
-        try
-        {
-            var chatMessage = context.Message;
-            await _chatsHub.Clients.Group(chatMessage.ChatId).SendAsync("ReceiveMessage", chatMessage);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error while sending message to chat");
-        }
+        await chatsHub.Clients.Group(@event.ChatId).SendAsync("ReceiveMessage", @event);
     }
 }

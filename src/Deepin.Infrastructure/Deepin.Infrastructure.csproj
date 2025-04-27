@@ -17,7 +17,8 @@
     <PackageReference Include="StackExchange.Redis" Version="2.8.24" />
     <PackageReference Include="Polly.Contrib.WaitAndRetry" Version="1.1.1" />
   </ItemGroup>
+
   <ItemGroup>
-    <ProjectReference Include="../Deepin.Domain/Deepin.Domain.csproj" />
+    <ProjectReference Include="../Deepin.Application/Deepin.Application.csproj" />
   </ItemGroup>
 </Project>

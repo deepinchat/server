@@ -1,8 +1,8 @@
-﻿using Deepin.Domain;
-using Deepin.Infrastructure.Caching;
+﻿using Deepin.Infrastructure.Caching;
 using Deepin.API.Services;
 using StackExchange.Redis;
 using Microsoft.AspNetCore.DataProtection;
+using Deepin.Application.Interfaces;
 
 namespace Deepin.API.Extensions;
 

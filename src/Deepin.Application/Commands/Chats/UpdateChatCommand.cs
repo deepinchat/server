@@ -1,4 +1,4 @@
-using Deepin.Application.Models.Chats;
+using Deepin.Application.DTOs.Chats;
 using MediatR;
 
 namespace Deepin.Application.Commands.Chats;

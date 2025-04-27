@@ -1,5 +1,4 @@
 using Deepin.Infrastructure.Caching;
-using Deepin.Infrastructure.EventBus;
 
 namespace Deepin.Infrastructure.Configurations;
 

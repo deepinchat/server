@@ -10,7 +10,7 @@ public class ChatsHub(IChatQueries chatQueries) : Hub
 {
     private readonly IChatQueries _chatQueries = chatQueries;
     private string? _userId = null;
-    public string? UserId
+    public Guid? UserId
     {
         get
         {
@@ -22,7 +22,7 @@ public class ChatsHub(IChatQueries chatQueries) : Hub
             {
                 _userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             }
-            return _userId;
+            return string.IsNullOrEmpty(_userId) ? null : Guid.Parse(_userId);
         }
     }
     public override async Task OnConnectedAsync()

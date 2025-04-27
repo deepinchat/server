@@ -4,7 +4,6 @@ using Deepin.Application.Extensions;
 using Deepin.Infrastructure.Caching;
 using Deepin.Infrastructure.Configurations;
 using Deepin.Infrastructure.Data;
-using Deepin.Infrastructure.EventBus;
 using Deepin.Infrastructure.Extensions;
 
 namespace Deepin.API.Extensions;
@@ -20,11 +19,10 @@ public static class HostExtensions
             RabbitMq = builder.Configuration.GetSection("RabbitMq").Get<RabbitMqOptions>(),
             Smtp = builder.Configuration.GetSection("Smtp").Get<SmtpOptions>()
         };
-        builder.Services.AddSingleton(appOptions);
         builder.Services
         .AddInfrastructure(appOptions, [Assembly.GetExecutingAssembly()])
-        .AddApplication(appOptions)
-        .AddMigration<ConversationDbContext>()
+        .AddApplication()
+        .AddMigration<ChatDbContext>()
         .AddDefaultUserContexts()
         .AddCustomDataProtection(appOptions.Redis)
         .AddCustomSignalR(appOptions.Redis);

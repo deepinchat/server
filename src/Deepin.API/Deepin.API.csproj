@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../Deepin.Application/Deepin.Application.csproj" />
+    <ProjectReference Include="../Deepin.Infrastructure/Deepin.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

@@ -2,4 +2,4 @@ using MediatR;
 
 namespace Deepin.Application.Commands.Chats;
 
-public record LeaveChatCommand(Guid Id, string UserId) : IRequest<bool>;
+public record LeaveChatCommand(Guid Id, Guid UserId) : IRequest<bool>;

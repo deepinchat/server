@@ -85,4 +85,26 @@ public class DbContextBase<TContext> : DbContext, IUnitOfWork where TContext : D
             }
         }
     }
+
+    public async Task ExecuteInTransactionAsync(Func<Task> action, CancellationToken cancellationToken = default)
+    {
+        if (action == null) throw new ArgumentNullException(nameof(action));
+
+
+        var strategy = Database.CreateExecutionStrategy();
+        await strategy.ExecuteAsync(async () =>
+        {
+            await using var transaction = await Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);
+            try
+            {
+                await action();
+                await transaction.CommitAsync(cancellationToken);
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                throw;
+            }
+        });
+    }
 }

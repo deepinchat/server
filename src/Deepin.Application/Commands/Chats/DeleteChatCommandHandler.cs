@@ -8,14 +8,14 @@ public class DeleteChatCommandHandler(IChatRepository chatRepository) : IRequest
     private readonly IChatRepository _chatRepository = chatRepository;
     public async Task<bool> Handle(DeleteChatCommand request, CancellationToken cancellationToken)
     {
-        var chat = await _chatRepository.GetByIdAsync(request.Id, cancellationToken);
+        var chat = await _chatRepository.FindByIdAsync(request.Id, cancellationToken);
         if (chat is null)
         {
             return false;
         }
 
         chat.Delete();
-        _chatRepository.Update(chat);
+        await _chatRepository.UpdateAsync(chat);
         return await _chatRepository.UnitOfWork.SaveEntitiesAsync(cancellationToken);
     }
 

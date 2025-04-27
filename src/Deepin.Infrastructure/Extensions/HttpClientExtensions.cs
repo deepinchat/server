@@ -1,6 +1,6 @@
 using System.Net;
 using System.Net.Http.Headers;
-using Deepin.Domain;
+using Deepin.Application.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Polly;
 using Polly.Contrib.WaitAndRetry;

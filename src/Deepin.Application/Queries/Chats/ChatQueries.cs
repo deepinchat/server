@@ -1,87 +1,95 @@
 using Deepin.Chatting.Application.Constants;
-using Deepin.Application.Models.Chats;
-using Deepin.Infrastructure.Caching;
-using Deepin.Infrastructure.Pagination;
-using Npgsql;
-using Deepin.Infrastructure.Data;
 using Dapper;
 using Deepin.Domain.ChatAggregate;
+using Deepin.Application.Interfaces;
+using Deepin.Application.DTOs.Chats;
+using Deepin.Application.DTOs;
+using System.Data;
 
 namespace Deepin.Application.Queries.Chats;
 
-public class ChatQueries(string connectionString, ICacheManager cacheManager) : QueryBase(ConversationDbContext.DEFAULT_SCHEMA), IChatQueries
+public class ChatQueries(IDbConnectionFactory dbConnectionFactory, ICacheManager cacheManager) : IChatQueries
 {
-    private readonly string _connectionString = connectionString;
+    private readonly IDbConnectionFactory _dbConnectionFactory = dbConnectionFactory;
     private readonly ICacheManager _cacheManager = cacheManager;
 
-    public async Task<IEnumerable<ChatDto>> GetChats(string userId)
+    public async Task<IEnumerable<ChatDto>> GetChats(Guid userId, CancellationToken cancellationToken = default)
     {
-        using (var connection = new NpgsqlConnection(_connectionString))
+        using (var connection = await _dbConnectionFactory.CreateChatDbConnectionAsync(cancellationToken))
         {
-            connection.Open();
             var sql = @"SELECT c.* FROM chats c 
                         JOIN chat_members cm ON c.id = cm.chat_id
                         WHERE c.is_deleted = false AND cm.user_id = @userId";
-            var result = await connection.QueryAsync<dynamic>(BuildSqlWithSchema(sql), new { userId });
+            var command = new CommandDefinition(sql, new { userId }, cancellationToken: cancellationToken);
+            var result = await connection.QueryAsync<dynamic>(command);
             return result.Select(MapChatDto);
         }
     }
-    public async Task<ChatDto?> GetChatById(Guid id)
+
+    public async Task<ChatDto?> GetChatById(Guid id, CancellationToken cancellationToken = default)
     {
-        return await _cacheManager.GetOrSetAsync<ChatDto>(CacheKeys.GetChatByIdCacheKey(id), async () =>
+        var cacheKey = CacheKeys.GetChatByIdCacheKey(id);
+        return await _cacheManager.GetOrSetAsync<ChatDto?>(cacheKey, async () =>
         {
-            using (var connection = new NpgsqlConnection(_connectionString))
+            using (var connection = await _dbConnectionFactory.CreateChatDbConnectionAsync(cancellationToken))
             {
-                connection.Open();
                 var sql = @"SELECT * FROM chats WHERE id = @id";
-                var result = await connection.QueryFirstOrDefaultAsync<dynamic>(BuildSqlWithSchema(sql), new { id });
-                return MapChatDto(result);
+                var command = new CommandDefinition(sql, new { id }, cancellationToken: cancellationToken);
+                var result = await connection.QueryFirstOrDefaultAsync<dynamic>(command);
+                return result is null ? null : MapChatDto(result);
             }
         });
     }
-    public async Task<ChatMemberDto?> GetChatMember(Guid chatId, string userId)
+
+    public async Task<ChatMemberDto?> GetChatMember(Guid chatId, Guid userId, CancellationToken cancellationToken = default)
     {
-        using (var connection = new NpgsqlConnection(_connectionString))
+        using (var connection = await _dbConnectionFactory.CreateChatDbConnectionAsync(cancellationToken))
         {
-            connection.Open();
             var sql = @"SELECT * FROM chat_members WHERE chat_id = @chatId AND user_id = @userId";
-            var row = await connection.QueryFirstOrDefaultAsync<ChatMemberDto>(BuildSqlWithSchema(sql), new { chatId, userId });
+            var command = new CommandDefinition(sql, new { chatId, userId }, cancellationToken: cancellationToken);
+            var row = await connection.QueryFirstOrDefaultAsync<dynamic>(command);
             return row is not null ? MapChatMemberDto(row) : null;
         }
     }
-    public async Task<IPagination<ChatMemberDto>> GetChatMembers(Guid chatId, int offset, int limit)
+
+    public async Task<IPagedResult<ChatMemberDto>> GetChatMembers(Guid chatId, int offset, int limit, CancellationToken cancellationToken = default)
     {
-        using (var connection = new NpgsqlConnection(_connectionString))
+        using (var connection = await _dbConnectionFactory.CreateChatDbConnectionAsync(cancellationToken))
         {
-            connection.Open();
             var query = @"SELECT * FROM chat_members WHERE chat_id = @chatId ORDER BY joined_at DESC OFFSET @offset LIMIT @limit";
             var countQuery = "SELECT COUNT(*) FROM chat_members WHERE chat_id = @chatId";
-            var count = await connection.ExecuteScalarAsync<int>(BuildSqlWithSchema(countQuery), new { chatId });
-            var rows = await connection.QueryAsync<dynamic>(BuildSqlWithSchema(query), new { chatId, offset, limit });
-            return new Pagination<ChatMemberDto>(rows.Select(MapChatMemberDto), offset, limit, count);
+
+            var countCommand = new CommandDefinition(countQuery, new { chatId }, cancellationToken: cancellationToken);
+            var queryCommand = new CommandDefinition(query, new { chatId, offset, limit }, cancellationToken: cancellationToken);
+
+            var count = await connection.ExecuteScalarAsync<int>(countCommand);
+            var rows = await connection.QueryAsync<dynamic>(queryCommand);
+            return new PagedResult<ChatMemberDto>(rows.Select(MapChatMemberDto).ToList(), offset, limit, count);
         }
     }
-    public async Task<IEnumerable<ChatReadStatusDto>> GetChatReadStatusesAsync(string userId)
+
+    public async Task<IEnumerable<ChatReadStatusDto>> GetChatReadStatusesAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        using (var connection = new NpgsqlConnection(_connectionString))
+        using (var connection = await _dbConnectionFactory.CreateChatDbConnectionAsync(cancellationToken))
         {
-            connection.Open();
             var sql = @"SELECT * FROM chat_read_statuses WHERE user_id = @userId";
-            var rows = await connection.QueryAsync<dynamic>(BuildSqlWithSchema(sql), new { userId });
+            var command = new CommandDefinition(sql, new { userId }, cancellationToken: cancellationToken);
+            var rows = await connection.QueryAsync<dynamic>(command);
             return rows is null ? [] : rows.Select(MapChatReadStatusDto);
         }
     }
 
-    public async Task<ChatReadStatusDto?> GetChatReadStatusAsync(Guid chatId, string userId)
+    public async Task<ChatReadStatusDto?> GetChatReadStatusAsync(Guid chatId, Guid userId, CancellationToken cancellationToken = default)
     {
-        using (var connection = new NpgsqlConnection(_connectionString))
+        using (var connection = await _dbConnectionFactory.CreateChatDbConnectionAsync(cancellationToken))
         {
-            connection.Open();
             var sql = @"SELECT * FROM chat_read_statuses WHERE chat_id = @chatId AND user_id = @userId";
-            var row = await connection.QueryFirstOrDefaultAsync<dynamic>(BuildSqlWithSchema(sql), new { chatId, userId });
+            var command = new CommandDefinition(sql, new { chatId, userId }, cancellationToken: cancellationToken);
+            var row = await connection.QueryFirstOrDefaultAsync<dynamic>(command);
             return row is null ? null : MapChatReadStatusDto(row);
         }
     }
+
     private ChatReadStatusDto MapChatReadStatusDto(dynamic row)
     {
         return new ChatReadStatusDto
@@ -92,6 +100,7 @@ public class ChatQueries(string connectionString, ICacheManager cacheManager) : 
             LastReadAt = row.last_read_at
         };
     }
+
     private ChatMemberDto MapChatMemberDto(dynamic row)
     {
         return new ChatMemberDto
@@ -103,6 +112,7 @@ public class ChatQueries(string connectionString, ICacheManager cacheManager) : 
             Role = Enum.Parse<ChatMemberRole>(row.role, true)
         };
     }
+
     private ChatDto MapChatDto(dynamic result)
     {
         var dto = new ChatDto
@@ -116,7 +126,7 @@ public class ChatQueries(string connectionString, ICacheManager cacheManager) : 
         };
         if (dto.Type != ChatType.Direct)
         {
-            dto.GroupInfo = new ChatInfo
+            dto.GroupInfo = new ChatGroupInfoDto
             {
                 Name = result.name,
                 AvatarFileId = result.avatar_file_id,

@@ -1,4 +1,4 @@
-﻿using Deepin.Domain;
+﻿using Deepin.Application.Interfaces;
 using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
 
@@ -15,7 +15,7 @@ public class HttpUserContext : IUserContext
     private string? _userId;
     private string? _userAgent;
     private string? _ipAddress;
-    public string UserId
+    public Guid UserId
     {
         get
         {
@@ -27,7 +27,7 @@ public class HttpUserContext : IUserContext
             {
                 _userId = _context.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             }
-            return _userId ?? string.Empty;
+            return string.IsNullOrEmpty(_userId) ? Guid.Empty : Guid.Parse(_userId);
         }
     }
     public string UserAgent

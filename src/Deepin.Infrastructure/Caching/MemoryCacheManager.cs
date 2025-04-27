@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using Deepin.Application.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace Deepin.Infrastructure.Caching;

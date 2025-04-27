@@ -1,6 +1,6 @@
 using AutoMapper;
-using Deepin.Application.Models.Chats;
-using Deepin.Domain;
+using Deepin.Application.DTOs.Chats;
+using Deepin.Application.Interfaces;
 using Deepin.Domain.ChatAggregate;
 using MediatR;
 
@@ -19,7 +19,7 @@ public class CreateDirectChatCommandHandler(IMapper mapper, IChatRepository chat
             groupInfo: null);
         request.UserIds.ToList().ForEach(userId => chat.AddMember(new ChatMember(userId, ChatMemberRole.Owner)));
 
-        _chatRepository.Add(chat);
+        await _chatRepository.AddAsync(chat);
         await _chatRepository.UnitOfWork.SaveEntitiesAsync(cancellationToken);
         return _mapper.Map<ChatDto>(chat);
     }
