@@ -6,6 +6,8 @@ using Deepin.Domain.MessageAggregate;
 using Deepin.Infrastructure.Caching;
 using Deepin.Infrastructure.Configurations;
 using Deepin.Infrastructure.Data;
+using Deepin.Infrastructure.EventBus;
+using Deepin.Infrastructure.FileStorage;
 using Deepin.Infrastructure.Repositories;
 using Deepin.Infrastructure.Services;
 using MassTransit;
@@ -26,19 +28,13 @@ public static class ServiceCollectionExtensions
         services.AddDbContexts(appOptions.ConnectionStrings);
         services.AddCaching(appOptions.Redis);
         services.AddEmailSender(appOptions.Smtp);
-        if (appOptions.RabbitMq is null)
-        {
-            services.AddEventBusInMemory(eventConsumerAssemblies);
-        }
-        else
-        {
-            services.AddEventBusRabbitMQ(appOptions.RabbitMq, eventConsumerAssemblies);
-        }
+        services.AddStorageProvider(appOptions.Storage ?? throw new ArgumentNullException(nameof(appOptions.Storage), "Storage options cannot be null"));
+        services.AddEventBus(eventConsumerAssemblies, appOptions.RabbitMq);
         return services;
     }
     public static IServiceCollection AddEmailSender(this IServiceCollection services, SmtpOptions? smtpOptions = null)
     {
-        if (smtpOptions is null)
+        if (smtpOptions is null || smtpOptions.IsEnabled == false)
         {
             services.AddSingleton<IEmailSender, FakeEmailSender>();
         }
@@ -71,6 +67,7 @@ public static class ServiceCollectionExtensions
         }
 
         AddChatDbContext(services, connectionStrings.Chat ?? connectionStrings.Default);
+        AddContactDbContext(services, connectionStrings.Contact ?? connectionStrings.Default);
         AddStorageDbContext(services, connectionStrings.Storage ?? connectionStrings.Default);
         AddNotificationDbContext(services, connectionStrings.Notification ?? connectionStrings.Default);
         AddMessageDbContext(services, connectionStrings.Message ?? connectionStrings.Default);
@@ -88,6 +85,19 @@ public static class ServiceCollectionExtensions
             options.UseNpgsql(connectionString);
         });
         services.AddScoped<IChatRepository, ChatRepository>();
+        return services;
+    }
+    public static IServiceCollection AddContactDbContext(this IServiceCollection services, string connectionString)
+    {
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            throw new ArgumentException("Contact DbConnection string cannot be null or empty", nameof(connectionString));
+        }
+        services.AddDbContext<ContactDbContext>(options =>
+        {
+            options.UseNpgsql(connectionString);
+        });
+        // services.AddScoped<IContactRepository, Contactr>();
         return services;
     }
     public static IServiceCollection AddStorageDbContext(this IServiceCollection services, string connectionString)
@@ -130,6 +140,19 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IMessageReactionRepository, MessageReactionRepository>();
         return services;
     }
+    public static IServiceCollection AddEventBus(this IServiceCollection services, Assembly[] eventConsumerAssemblies, RabbitMqOptions? mqOptions = null)
+    {
+        services.AddScoped<IEventBus, IntegrationEventBus>();
+        if (mqOptions is null)
+        {
+            services.AddEventBusInMemory(eventConsumerAssemblies);
+        }
+        else
+        {
+            services.AddEventBusRabbitMQ(mqOptions, eventConsumerAssemblies);
+        }
+        return services;
+    }
     public static IServiceCollection AddEventBusInMemory(this IServiceCollection services, Assembly[] assemblies)
     {
         services.AddMassTransit(cfg =>
@@ -165,6 +188,22 @@ public static class ServiceCollectionExtensions
                 });
             });
         });
+        return services;
+    }
+    public static IServiceCollection AddStorageProvider(this IServiceCollection services, StorageOptions storageOptions)
+    {
+        if (storageOptions.Provider == StorageProvider.Local)
+        {
+            services.AddSingleton<IFileStorage>(sp => new LocalFileStorage(storageOptions));
+        }
+        else if (storageOptions.Provider == StorageProvider.AwsS3)
+        {
+            services.AddSingleton<IFileStorage>(sp => new S3FileStorage(storageOptions));
+        }
+        else
+        {
+            throw new NotSupportedException($"The storage provider '{storageOptions.Provider}' is not supported.");
+        }
         return services;
     }
 }

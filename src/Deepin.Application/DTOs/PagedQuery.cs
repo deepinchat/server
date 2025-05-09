@@ -2,9 +2,9 @@ namespace Deepin.Application.DTOs;
 
 public class PagedQuery
 {
-    public int PageIndex { get; set; } = 1;
+    public int Offset { get; set; }
 
-    public int PageSize { get; set; } = 10;
+    public int Limit { get; set; } = 10;
 
     public string? OrderBy { get; set; }
 

@@ -2,7 +2,7 @@ using Deepin.Application.Commands.Chats;
 using Deepin.Application.DTOs;
 using Deepin.Application.DTOs.Chats;
 using Deepin.Application.Interfaces;
-using Deepin.Application.Queries.Chats;
+using Deepin.Application.Queries;
 using Deepin.Domain.ChatAggregate;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;

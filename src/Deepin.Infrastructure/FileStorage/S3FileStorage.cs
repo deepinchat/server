@@ -1,12 +1,22 @@
 using Deepin.Application.DTOs.Files;
 using Deepin.Application.Interfaces;
 using Deepin.Domain.FileAggregate;
+using Deepin.Infrastructure.Configurations;
 
 namespace Deepin.Infrastructure.FileStorage;
 
-public class S3FileStorage : IFileStorage
+public class S3FileStorageOptions
 {
-    public StorageProvider Provider => StorageProvider.AmazonS3;
+    public string? BucketName { get; set; }
+    public string? Region { get; set; }
+    public string? AccessKey { get; set; }
+    public string? SecretKey { get; set; }
+}
+public class S3FileStorage(StorageOptions options) : IFileStorage
+{
+    public StorageProvider Provider => StorageProvider.AwsS3;
+    private readonly S3FileStorageOptions _options = options.Config.ToObject<S3FileStorageOptions>()
+        ?? throw new ArgumentNullException(nameof(options.Config), "S3 file storage options are not configured.");
 
     public Task<string> BuildStorageKeyAsync(Guid id, string fileName, string? containerName = null, CancellationToken cancellationToken = default)
     {

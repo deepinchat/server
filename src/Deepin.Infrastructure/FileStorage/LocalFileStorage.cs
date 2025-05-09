@@ -1,16 +1,17 @@
 ﻿using Deepin.Application.DTOs.Files;
 using Deepin.Application.Interfaces;
 using Deepin.Domain.FileAggregate;
-using Microsoft.Extensions.Options;
+using Deepin.Infrastructure.Configurations;
 
 namespace Deepin.Infrastructure.FileStorage;
 public class LocalFileStorageOptions
 {
-    public required string Root { get; set; }
+    public required string RootPath { get; set; }
 }
-public class LocalFileStorage(IOptions<LocalFileStorageOptions> options) : IFileStorage
+public class LocalFileStorage(StorageOptions options) : IFileStorage
 {
-    private readonly string _rootPath = options.Value.Root;
+    private readonly string _rootPath = options.Config.ToObject<LocalFileStorageOptions>()?.RootPath
+        ?? throw new ArgumentNullException(nameof(options.Config), "Local file storage root path is not configured.");
 
     public StorageProvider Provider => StorageProvider.Local;
 

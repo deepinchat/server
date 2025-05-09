@@ -1,7 +1,7 @@
 using Deepin.API.Requests.Files;
 using Deepin.Application.Commands.Files;
 using Deepin.Application.Interfaces;
-using Deepin.Application.Queries.Files;
+using Deepin.Application.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

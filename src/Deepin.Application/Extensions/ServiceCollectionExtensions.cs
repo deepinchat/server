@@ -1,5 +1,4 @@
-using Deepin.Application.Queries.Chats;
-using Deepin.Application.Queries.Files;
+using Deepin.Application.Queries;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -25,6 +24,7 @@ public static class ServiceCollectionExtensions
     {
         services.AddScoped<IChatQueries, ChatQueries>();
         services.AddScoped<IFileQueries, FileQueries>();
+        services.AddScoped<IMessageQueries, MessageQueries>();
         return services;
     }
 }

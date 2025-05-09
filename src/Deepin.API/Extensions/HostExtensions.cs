@@ -17,15 +17,20 @@ public static class HostExtensions
             ConnectionStrings = builder.Configuration.GetSection("ConnectionStrings").Get<ConnectionStringOptions>()!,
             Redis = builder.Configuration.GetSection("Redis").Get<RedisCacheOptions>(),
             RabbitMq = builder.Configuration.GetSection("RabbitMq").Get<RabbitMqOptions>(),
-            Smtp = builder.Configuration.GetSection("Smtp").Get<SmtpOptions>()
+            Smtp = builder.Configuration.GetSection("Smtp").Get<SmtpOptions>(),
+            Storage = builder.Configuration.GetSection("Storage").Get<StorageOptions>(),
         };
         builder.Services
         .AddInfrastructure(appOptions, [Assembly.GetExecutingAssembly()])
         .AddApplication()
-        .AddMigration<ChatDbContext>()
         .AddDefaultUserContexts()
         .AddCustomDataProtection(appOptions.Redis)
-        .AddCustomSignalR(appOptions.Redis);
+        .AddCustomSignalR(appOptions.Redis)
+        .AddMigration<ChatDbContext>()
+        .AddMigration<MessageDbContext>()
+        .AddMigration<NotificationDbContext>()
+        .AddMigration<ContactDbContext>()
+        .AddMigration<StorageDbContext>();
 
         builder.AddServiceDefaults();
         return builder;

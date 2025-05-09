@@ -21,7 +21,6 @@ public class MessageDbContext : DbContextBase<MessageDbContext>
         modelBuilder.ApplyConfiguration(new MessageEntityTypeConfiguration());
         modelBuilder.ApplyConfiguration(new MessageReactionEntityTypeConfiguration());
         modelBuilder.ApplyConfiguration(new MessageAttachmentEntityTypeConfiguration());
-        modelBuilder.ApplyConfiguration(new MessageMentionEntityTypeConfiguration());
     }
 }
 public class MessageDbContextFactory : IDesignTimeDbContextFactory<MessageDbContext>

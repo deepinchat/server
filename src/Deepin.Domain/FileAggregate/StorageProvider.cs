@@ -3,7 +3,7 @@ public enum StorageProvider
 {
     Local,
     AzureBlob,
-    AmazonS3,
+    AwsS3,
     GoogleCloudStorage,
     Aliyun,
     TencentCloud,

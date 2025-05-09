@@ -6,7 +6,16 @@ using Deepin.Application.DTOs.Chats;
 using Deepin.Application.DTOs;
 using System.Data;
 
-namespace Deepin.Application.Queries.Chats;
+namespace Deepin.Application.Queries;
+public interface IChatQueries
+{
+    Task<IEnumerable<ChatDto>> GetChats(Guid userId, CancellationToken cancellationToken = default);
+    Task<ChatDto?> GetChatById(Guid id, CancellationToken cancellationToken = default);
+    Task<ChatMemberDto?> GetChatMember(Guid chatId, Guid userId, CancellationToken cancellationToken = default);
+    Task<IPagedResult<ChatMemberDto>> GetChatMembers(Guid chatId, int offset, int limit, CancellationToken cancellationToken = default);
+    Task<IEnumerable<ChatReadStatusDto>> GetChatReadStatusesAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<ChatReadStatusDto?> GetChatReadStatusAsync(Guid chatId, Guid userId, CancellationToken cancellationToken = default);
+}
 
 public class ChatQueries(IDbConnectionFactory dbConnectionFactory, ICacheManager cacheManager) : IChatQueries
 {

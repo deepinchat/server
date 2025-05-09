@@ -8,12 +8,12 @@ namespace Deepin.API.IntegrationEventHandling;
 
 public class SendEmailIntegrationEventHandler(
     ILogger<SendEmailIntegrationEventHandler> logger,
-    SmtpOptions smtpOptions,
+    AppOptions appOptions,
     IEmailSender emailSender,
     IEmailRepository emailRepository)
 : IntegrationEventHandler<SendEmailIntegrationEvent>(logger)
 {
-
+    private readonly SmtpOptions smtpOptions = appOptions.Smtp ?? new SmtpOptions();
     public async override Task HandleAsync(SendEmailIntegrationEvent @event, CancellationToken cancellationToken)
     {
         var email = new Email(from: smtpOptions.FromAddress, to: string.Join(";", @event.To), subject: @event.Subject, body: @event.Body, isBodyHtml: true, cc: @event.CC == null ? null : string.Join(";", @event.CC));

@@ -2,7 +2,7 @@ using AutoMapper;
 using Deepin.Application.DTOs.Files;
 using Deepin.Application.Helpers;
 using Deepin.Application.Interfaces;
-using Deepin.Application.Queries.Files;
+using Deepin.Application.Queries;
 using Deepin.Domain.FileAggregate;
 using HeyRed.Mime;
 using MediatR;

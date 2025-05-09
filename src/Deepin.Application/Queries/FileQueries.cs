@@ -3,7 +3,12 @@ using Deepin.Application.DTOs.Files;
 using Deepin.Application.Interfaces;
 using Deepin.Chatting.Application.Constants;
 
-namespace Deepin.Application.Queries.Files;
+namespace Deepin.Application.Queries;
+public interface IFileQueries
+{
+    Task<FileDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<FileDto?> GetByHashAsync(string hash, CancellationToken cancellationToken = default);
+}
 
 public class FileQueries(IDbConnectionFactory dbConnectionFactory, ICacheManager cacheManager) : IFileQueries
 {

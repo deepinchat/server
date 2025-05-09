@@ -1,4 +1,3 @@
-using System;
 using Deepin.Domain;
 using Deepin.Domain.MessageAggregate;
 using Deepin.Infrastructure.Data;
@@ -28,7 +27,6 @@ public class MessageRepository(MessageDbContext db) : IMessageRepository
             return null;
         }
         await db.Entry(message).Collection(m => m.Attachments).LoadAsync();
-        await db.Entry(message).Collection(m => m.Mentions).LoadAsync();
 
         return message;
     }

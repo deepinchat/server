@@ -1,5 +1,5 @@
 using Deepin.Application.Interfaces;
-using Deepin.Application.Queries.Files;
+using Deepin.Application.Queries;
 using MediatR;
 
 namespace Deepin.Application.Commands.Files;

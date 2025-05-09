@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using Deepin.Application.Queries.Chats;
+using Deepin.Application.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 

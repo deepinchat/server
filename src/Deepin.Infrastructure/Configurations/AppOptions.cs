@@ -8,4 +8,5 @@ public class AppOptions
     public RedisCacheOptions? Redis { get; set; }
     public RabbitMqOptions? RabbitMq { get; set; }
     public SmtpOptions? Smtp { get; set; }
+    public StorageOptions? Storage { get; set; }
 }

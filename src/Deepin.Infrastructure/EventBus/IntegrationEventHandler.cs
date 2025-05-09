@@ -20,7 +20,6 @@ public abstract class IntegrationEventHandler<TIntegrationEvent>(ILogger logger)
         catch (Exception ex)
         {
             logger.LogError(ex, "Error while handling integration event: {EventName}", typeof(TIntegrationEvent).Name);
-            throw;
         }
     }
 

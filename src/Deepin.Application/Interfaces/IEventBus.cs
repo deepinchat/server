@@ -4,5 +4,5 @@ namespace Deepin.Application.Interfaces;
 
 public interface IEventBus
 {
-    Task PublishAsync<T>(T @event) where T : IntegrationEvent;
+    Task PublishAsync<T>(T @event, CancellationToken cancellationToken = default) where T : IntegrationEvent;
 }

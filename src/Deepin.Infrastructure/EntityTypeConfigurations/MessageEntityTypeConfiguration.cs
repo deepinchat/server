@@ -16,8 +16,9 @@ public class MessageEntityTypeConfiguration : IEntityTypeConfiguration<Message>
         builder.Property(x => x.UserId).HasColumnName("user_id").HasColumnType("uuid").IsRequired();
         builder.Property(x => x.Type).HasColumnName("type").HasColumnType("text").HasConversion<string>().IsRequired();
         builder.Property(x => x.Text).HasColumnName("text").HasColumnType("text").IsRequired(false);
+        builder.Property(x => x.Mentions).HasColumnName("mentions").HasColumnType("jsonb").IsRequired(false);
         builder.Property(x => x.Metadata).HasColumnName("metadata").HasColumnType("jsonb").IsRequired(false);
-        builder.Property(x => x.ParentId).HasColumnName("parnet_id").HasColumnType("uuid").IsRequired(false);
+        builder.Property(x => x.ParentId).HasColumnName("parent_id").HasColumnType("uuid").IsRequired(false);
         builder.Property(x => x.ReplyToId).HasColumnName("reply_id").HasColumnType("uuid").IsRequired(false);
         builder.Property(x => x.ReplyToId).HasColumnName("reply_id").HasColumnType("uuid").IsRequired(false);
         builder.Property(x => x.IsDeleted).HasColumnName("is_deleted");
@@ -26,8 +27,7 @@ public class MessageEntityTypeConfiguration : IEntityTypeConfiguration<Message>
         builder.Property(x => x.IsRead).HasColumnName("is_read");
         builder.Property(x => x.CreatedAt).HasColumnName("created_at").HasColumnType("timestamp with time zone").ValueGeneratedOnAdd().HasDefaultValueSql("CURRENT_TIMESTAMP AT TIME ZONE 'UTC'");
         builder.Property(x => x.ModifiedAt).HasColumnName("modified_at").HasColumnType("timestamp with time zone").ValueGeneratedOnAddOrUpdate().HasDefaultValueSql("CURRENT_TIMESTAMP AT TIME ZONE 'UTC'");
-    
-        builder.HasMany(x => x.Mentions).WithOne().HasForeignKey("chat_id");
+
         builder.HasMany(x => x.Attachments).WithOne().HasForeignKey("chat_id");
     }
 }
