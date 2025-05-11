@@ -67,14 +67,16 @@ public static class ServiceCollectionExtensions
             throw new ArgumentNullException(nameof(connectionStrings), "Connection strings cannot be null");
         }
 
-        AddChatDbContext(services, connectionStrings.Chat ?? connectionStrings.Default);
-        AddContactDbContext(services, connectionStrings.Contact ?? connectionStrings.Default);
-        AddStorageDbContext(services, connectionStrings.Storage ?? connectionStrings.Default);
-        AddNotificationDbContext(services, connectionStrings.Notification ?? connectionStrings.Default);
-        AddMessageDbContext(services, connectionStrings.Message ?? connectionStrings.Default);
-        AddIdentityDbContext(services, connectionStrings.Identity ?? connectionStrings.Default);
-        AddIdentityServerPersistedGrantDbContext(services, connectionStrings.IdentityServer ?? connectionStrings.Default);
-        AddIdentityServerConfigurationDbContext(services, connectionStrings.IdentityServer ?? connectionStrings.Default);
+        services
+        .AddChatDbContext(connectionStrings.Chat ?? connectionStrings.Default)
+        .AddContactDbContext(connectionStrings.Contact ?? connectionStrings.Default)
+        .AddStorageDbContext(connectionStrings.Storage ?? connectionStrings.Default)
+        .AddNotificationDbContext(connectionStrings.Notification ?? connectionStrings.Default)
+        .AddMessageDbContext(connectionStrings.Message ?? connectionStrings.Default)
+        .AddIdentityDbContext(connectionStrings.Identity ?? connectionStrings.Default)
+        .AddIdentityServerPersistedGrantDbContext(connectionStrings.IdentityServer ?? connectionStrings.Default)
+        .AddIdentityServerConfigurationDbContext(connectionStrings.IdentityServer ?? connectionStrings.Default);
+
         services.AddScoped<IDbConnectionFactory, NpgsqlDbConnectionFactory>();
         return services;
     }
@@ -210,7 +212,7 @@ public static class ServiceCollectionExtensions
         }
         return services;
     }
-    private static IServiceCollection AddIdentityDbContext(this IServiceCollection services, string connectionString)
+    public static IServiceCollection AddIdentityDbContext(this IServiceCollection services, string connectionString)
     {
         if (string.IsNullOrWhiteSpace(connectionString))
         {
@@ -225,7 +227,7 @@ public static class ServiceCollectionExtensions
         }, ServiceLifetime.Scoped);
         return services;
     }
-    private static IServiceCollection AddIdentityServerPersistedGrantDbContext(this IServiceCollection services, string connectionString)
+    public static IServiceCollection AddIdentityServerPersistedGrantDbContext(this IServiceCollection services, string connectionString)
     {
         if (string.IsNullOrWhiteSpace(connectionString))
         {
@@ -240,7 +242,7 @@ public static class ServiceCollectionExtensions
         });
         return services;
     }
-    private static IServiceCollection AddIdentityServerConfigurationDbContext(this IServiceCollection services, string connectionString)
+    public static IServiceCollection AddIdentityServerConfigurationDbContext(this IServiceCollection services, string connectionString)
     {
         if (string.IsNullOrWhiteSpace(connectionString))
         {
