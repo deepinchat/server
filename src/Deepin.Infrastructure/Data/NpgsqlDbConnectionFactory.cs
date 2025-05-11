@@ -25,6 +25,17 @@ public class NpgsqlDbConnectionFactory(AppOptions appOptions) : IDbConnectionFac
         }
         return await CreateDbConnectionAsync(connectionString, StorageDbContext.DEFAULT_SCHEMA, cancellationToken);
     }
+
+    public async Task<IDbConnection> CreateIdentityDbConnectionAsync(CancellationToken cancellationToken = default)
+    {
+        var connectionString = appOptions.ConnectionStrings.Identity ?? appOptions.ConnectionStrings.Default;
+        if (string.IsNullOrEmpty(connectionString))
+        {
+            throw new ArgumentException($"Identity Connection string not found.");
+        }
+        return await CreateDbConnectionAsync(connectionString, IdentityContext.DEFAULT_SCHEMA, cancellationToken);
+    }
+
     public async Task<IDbConnection> CreateDbConnectionAsync(string connectionString, string schema, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(connectionString))

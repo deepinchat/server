@@ -13,7 +13,7 @@ public class ChatRepository(ChatDbContext db) : IChatRepository
         await _db.Chats.AddAsync(chat);
     }
 
-    public async Task<ChatReadStatus> AddOrUpdateReadStatusAsync(Guid id, Guid userId, string messageId, CancellationToken cancellationToken)
+    public async Task<ChatReadStatus> AddOrUpdateReadStatusAsync(Guid id, Guid userId, Guid messageId, CancellationToken cancellationToken)
     {
         var readStatus = await _db.ChatReadStatuses
             .FirstOrDefaultAsync(x => x.ChatId == id && x.UserId == userId, cancellationToken);

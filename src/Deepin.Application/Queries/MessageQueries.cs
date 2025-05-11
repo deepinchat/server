@@ -10,15 +10,16 @@ namespace Deepin.Application.Queries;
 public interface IMessageQueries
 {
     Task<MessageDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<Guid?> GetLastIdAsync(Guid chatId, CancellationToken cancellationToken = default);
     Task<IPagedResult<MessageDto>> GetPagedAsync(SearchMessageRequest request, CancellationToken cancellationToken = default);
     Task<IEnumerable<MessageDto>> BatchGetByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken = default);
-    Task<IDictionary<Guid, Guid>> GetLatestIdsAsync(IEnumerable<Guid> chatIds, CancellationToken cancellationToken = default);
-    Task<int> GetUnreadCountAsync(Guid chatId, DateTime? lastReadTime = null, CancellationToken cancellationToken = default);
+    Task<IDictionary<Guid, Guid>> GetLastIdsAsync(IEnumerable<Guid> chatIds, CancellationToken cancellationToken = default);
+    Task<int> GetUnreadCountAsync(Guid chatId, DateTimeOffset? lastReadTime = null, CancellationToken cancellationToken = default);
 }
 
 public class MessageQueries(IDbConnectionFactory dbConnectionFactory) : IMessageQueries
 {
-    public async Task<int> GetUnreadCountAsync(Guid chatId, DateTime? lastReadTime = null, CancellationToken cancellationToken = default)
+    public async Task<int> GetUnreadCountAsync(Guid chatId, DateTimeOffset? lastReadTime = null, CancellationToken cancellationToken = default)
     {
         using (var connection = await dbConnectionFactory.CreateStorageDbConnectionAsync(cancellationToken))
         {
@@ -37,7 +38,7 @@ public class MessageQueries(IDbConnectionFactory dbConnectionFactory) : IMessage
             return await connection.ExecuteScalarAsync<int>(command);
         }
     }
-    public async Task<IDictionary<Guid, Guid>> GetLatestIdsAsync(IEnumerable<Guid> chatIds, CancellationToken cancellationToken = default)
+    public async Task<IDictionary<Guid, Guid>> GetLastIdsAsync(IEnumerable<Guid> chatIds, CancellationToken cancellationToken = default)
     {
         using (var connection = await dbConnectionFactory.CreateStorageDbConnectionAsync(cancellationToken))
         {
@@ -194,7 +195,7 @@ public class MessageQueries(IDbConnectionFactory dbConnectionFactory) : IMessage
             Metadata = message.metadata,
             ParentId = message.parent_id,
             ReplyToId = message.reply_to_id,
-            Mentions = message.mentions is null ? [] : JsonConvert.DeserializeObject<IEnumerable<MessageMention>>(message.mentions),
+            Mentions = message.mentions is null ? [] : JsonConvert.DeserializeObject<IEnumerable<MessageMentionDto>>(message.mentions),
             Attachments = rows.Select(row => new MessageAttachmentDto
             {
                 Id = row.id,
@@ -209,5 +210,24 @@ public class MessageQueries(IDbConnectionFactory dbConnectionFactory) : IMessage
             })
         }; ;
         return messageDto;
+    }
+
+    public async Task<Guid?> GetLastIdAsync(Guid chatId, CancellationToken cancellationToken = default)
+    {
+        using (var connection = await dbConnectionFactory.CreateStorageDbConnectionAsync(cancellationToken))
+        {
+            var sql = @"
+                SELECT 
+                    id
+                FROM 
+                    messages
+                WHERE 
+                    chat_id = @chatId AND NOT is_deleted
+                ORDER BY 
+                    created_at DESC
+                LIMIT 1";
+            var command = new CommandDefinition(sql, new { chatId }, cancellationToken: cancellationToken);
+            return await connection.ExecuteScalarAsync<Guid?>(command);
+        }
     }
 }

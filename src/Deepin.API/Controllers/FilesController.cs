@@ -1,4 +1,4 @@
-using Deepin.API.Requests.Files;
+using Deepin.API.Models.Files;
 using Deepin.Application.Commands.Files;
 using Deepin.Application.Interfaces;
 using Deepin.Application.Queries;

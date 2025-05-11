@@ -25,6 +25,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IChatQueries, ChatQueries>();
         services.AddScoped<IFileQueries, FileQueries>();
         services.AddScoped<IMessageQueries, MessageQueries>();
+        services.AddScoped<IUserQueries, UserQueries>();
         return services;
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -68,7 +69,7 @@ namespace Deepin.Infrastructure.Migrations.Chats
                     id = table.Column<Guid>(type: "uuid", nullable: false),
                     chat_id = table.Column<Guid>(type: "uuid", nullable: false),
                     user_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    last_read_message_id = table.Column<string>(type: "text", nullable: false),
+                    last_read_message_id = table.Column<Guid>(type: "uuid", nullable: false),
                     last_read_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>

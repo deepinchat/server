@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Deepin.Infrastructure.Migrations.Chats
 {
     [DbContext(typeof(ChatDbContext))]
-    [Migration("20250507104118_InitialCreate")]
+    [Migration("20250511084156_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -21,7 +21,7 @@ namespace Deepin.Infrastructure.Migrations.Chats
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("chats")
-                .HasAnnotation("ProductVersion", "9.0.2")
+                .HasAnnotation("ProductVersion", "9.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -112,9 +112,8 @@ namespace Deepin.Infrastructure.Migrations.Chats
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_read_at");
 
-                    b.Property<string>("LastReadMessageId")
-                        .IsRequired()
-                        .HasColumnType("text")
+                    b.Property<Guid>("LastReadMessageId")
+                        .HasColumnType("uuid")
                         .HasColumnName("last_read_message_id");
 
                     b.Property<Guid>("UserId")

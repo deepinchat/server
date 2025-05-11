@@ -19,5 +19,5 @@ public class MessageDto
     public bool IsEdited { get; set; }
     public bool IsPinned { get; set; }
     public IEnumerable<MessageAttachmentDto> Attachments { get; set; }
-    public IEnumerable<MessageMention> Mentions { get; set; }
+    public IEnumerable<MessageMentionDto> Mentions { get; set; }
 }

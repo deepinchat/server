@@ -1,3 +1,5 @@
+using Deepin.API.Models.Messages;
+using Deepin.API.Services;
 using Deepin.Application.Commands.Messages;
 using Deepin.Application.DTOs;
 using Deepin.Application.DTOs.Messages;
@@ -11,14 +13,14 @@ namespace Deepin.API.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class MessagesController(IMediator mediator) : ControllerBase
+    public class MessagesController(IMediator mediator, IChatService chatService) : ControllerBase
     {
         private readonly IMediator _mediator = mediator;
 
         [HttpGet("{id:guid}")]
-        public async Task<ActionResult<MessageDto>> Get(Guid id, CancellationToken cancellationToken)
+        public async Task<ActionResult<MessageSummary>> Get(Guid id, CancellationToken cancellationToken)
         {
-            var message = await _mediator.Send(new GetMessageCommand(id), cancellationToken);
+            var message = await chatService.GetMessage(id, cancellationToken);
             if (message is null)
             {
                 return NotFound();
@@ -35,7 +37,11 @@ namespace Deepin.API.Controllers
         [HttpGet]
         public async Task<ActionResult<IPagedResult<MessageDto>>> SearchMessages([FromQuery] SearchMessageRequest request, CancellationToken cancellationToken)
         {
-            var result = await _mediator.Send(new SearchMessageCommand(request), cancellationToken);
+            var result = await chatService.SearchMessages(request, cancellationToken);
+            if (result is null)
+            {
+                return NotFound();
+            }
             return Ok(result);
         }
     }

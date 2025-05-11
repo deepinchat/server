@@ -1,4 +1,4 @@
-namespace Deepin.API.Requests.Files;
+namespace Deepin.API.Models.Files;
 
 public class FileUploadRequest
 {

@@ -2,7 +2,7 @@ using Deepin.Domain.MessageAggregate;
 
 namespace Deepin.Application.DTOs.Messages;
 
-public class MessageMention
+public class MessageMentionDto
 {
     public MentionType Type { get; set; }
     public Guid? UserId { get; set; }

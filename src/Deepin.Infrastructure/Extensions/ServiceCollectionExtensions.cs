@@ -10,6 +10,7 @@ using Deepin.Infrastructure.EventBus;
 using Deepin.Infrastructure.FileStorage;
 using Deepin.Infrastructure.Repositories;
 using Deepin.Infrastructure.Services;
+using Duende.IdentityServer.EntityFramework.Storage;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
@@ -71,6 +72,9 @@ public static class ServiceCollectionExtensions
         AddStorageDbContext(services, connectionStrings.Storage ?? connectionStrings.Default);
         AddNotificationDbContext(services, connectionStrings.Notification ?? connectionStrings.Default);
         AddMessageDbContext(services, connectionStrings.Message ?? connectionStrings.Default);
+        AddIdentityDbContext(services, connectionStrings.Identity ?? connectionStrings.Default);
+        AddIdentityServerPersistedGrantDbContext(services, connectionStrings.IdentityServer ?? connectionStrings.Default);
+        AddIdentityServerConfigurationDbContext(services, connectionStrings.IdentityServer ?? connectionStrings.Default);
         services.AddScoped<IDbConnectionFactory, NpgsqlDbConnectionFactory>();
         return services;
     }
@@ -204,6 +208,51 @@ public static class ServiceCollectionExtensions
         {
             throw new NotSupportedException($"The storage provider '{storageOptions.Provider}' is not supported.");
         }
+        return services;
+    }
+    private static IServiceCollection AddIdentityDbContext(this IServiceCollection services, string connectionString)
+    {
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            throw new ArgumentException("IdentityServer DbConnection string cannot be null or empty", nameof(connectionString));
+        }
+        services.AddDbContext<IdentityContext>(options =>
+        {
+            options.UseNpgsql(connectionString, sql =>
+            {
+                sql.EnableRetryOnFailure(3);
+            });
+        }, ServiceLifetime.Scoped);
+        return services;
+    }
+    private static IServiceCollection AddIdentityServerPersistedGrantDbContext(this IServiceCollection services, string connectionString)
+    {
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            throw new ArgumentException("PersistedGrant DbConnection string cannot be null or empty", nameof(connectionString));
+        }
+        services.AddOperationalDbContext<PersistedGrantContext>(options =>
+        {
+            options.ConfigureDbContext = builder => builder.UseNpgsql(connectionString, sql =>
+            {
+                sql.EnableRetryOnFailure(3);
+            });
+        });
+        return services;
+    }
+    private static IServiceCollection AddIdentityServerConfigurationDbContext(this IServiceCollection services, string connectionString)
+    {
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            throw new ArgumentException("Configuration DbConnection string cannot be null or empty", nameof(connectionString));
+        }
+        services.AddConfigurationDbContext<ConfigurationContext>(options =>
+        {
+            options.ConfigureDbContext = builder => builder.UseNpgsql(connectionString, sql =>
+            {
+                sql.EnableRetryOnFailure(3);
+            });
+        });
         return services;
     }
 }

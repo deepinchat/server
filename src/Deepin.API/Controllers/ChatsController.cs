@@ -1,3 +1,5 @@
+using Deepin.API.Models.Chats;
+using Deepin.API.Services;
 using Deepin.Application.Commands.Chats;
 using Deepin.Application.DTOs;
 using Deepin.Application.DTOs.Chats;
@@ -13,25 +15,25 @@ namespace Deepin.API.Controllers
     [Route("api/v1/[controller]")]
     [ApiController]
     [Authorize]
-    public class ChatsController(IMediator mediator, IChatQueries chatQueries, IUserContext userContext) : ControllerBase
+    public class ChatsController(IMediator mediator, IChatQueries chatQueries, IUserContext userContext, IChatService chatService) : ControllerBase
     {
         private readonly IMediator _mediator = mediator;
         private readonly IChatQueries _chatQueries = chatQueries;
         private readonly IUserContext _userContext = userContext;
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<ChatDto>> Get(Guid id)
+        public async Task<ActionResult<ChatSummary>> Get(Guid id, CancellationToken cancellationToken = default)
         {
-            var chat = await _chatQueries.GetChatById(id);
+            var chat = await chatService.GetChat(id, _userContext.UserId, cancellationToken);
             if (chat == null) return NotFound();
             return Ok(chat);
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ChatDto>>> GetChats(CancellationToken cancellationToken = default)
+        public async Task<ActionResult<IEnumerable<ChatSummary>>> GetChats(CancellationToken cancellationToken = default)
         {
-            var list = await _chatQueries.GetChats(_userContext.UserId, cancellationToken);
-            return Ok(list.OrderByDescending(x => x.UpdatedAt));
+            var chats = await chatService.GetChats(_userContext.UserId, cancellationToken);
+            return Ok(chats.OrderByDescending(x => x.Chat.UpdatedAt));
         }
         [HttpPost]
         public async Task<ActionResult<ChatDto>> Post([FromBody] CreateChatCommand command, CancellationToken cancellationToken = default)

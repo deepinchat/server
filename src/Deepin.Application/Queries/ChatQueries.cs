@@ -26,9 +26,14 @@ public class ChatQueries(IDbConnectionFactory dbConnectionFactory, ICacheManager
     {
         using (var connection = await _dbConnectionFactory.CreateChatDbConnectionAsync(cancellationToken))
         {
-            var sql = @"SELECT c.* FROM chats c 
-                        JOIN chat_members cm ON c.id = cm.chat_id
-                        WHERE c.is_deleted = false AND cm.user_id = @userId";
+            var sql = @"SELECT 
+                            c.*
+                        FROM 
+                            chats c 
+                        JOIN 
+                            chat_members cm ON c.id = cm.chat_id
+                        WHERE 
+                            c.is_deleted = false AND cm.user_id = @userId";
             var command = new CommandDefinition(sql, new { userId }, cancellationToken: cancellationToken);
             var result = await connection.QueryAsync<dynamic>(command);
             return result.Select(MapChatDto);

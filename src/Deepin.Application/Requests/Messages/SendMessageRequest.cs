@@ -11,5 +11,5 @@ public record SendMessageRequest(
     Guid? ReplyToId,
     string? Text,
     IEnumerable<MessageAttachmentRequest>? Attachments,
-    IEnumerable<MessageMention>? Mentions,
+    IEnumerable<MessageMentionDto>? Mentions,
     JObject? Metadata);
