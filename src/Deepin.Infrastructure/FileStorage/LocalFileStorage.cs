@@ -10,8 +10,8 @@ public class LocalFileStorageOptions
 }
 public class LocalFileStorage(StorageOptions options) : IFileStorage
 {
-    private readonly string _rootPath = options.Config.ToObject<LocalFileStorageOptions>()?.RootPath
-        ?? throw new ArgumentNullException(nameof(options.Config), "Local file storage root path is not configured.");
+    private readonly string _rootPath = options.FileSystem?.RootPath
+        ?? throw new ArgumentNullException(nameof(options.FileSystem), "Local file storage root path is not configured.");
 
     public StorageProvider Provider => StorageProvider.Local;
 

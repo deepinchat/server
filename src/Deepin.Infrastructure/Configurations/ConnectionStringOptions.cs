@@ -2,7 +2,6 @@ namespace Deepin.Infrastructure.Configurations;
 
 public class ConnectionStringOptions
 {
-    public string Default { get; set; } = string.Empty;
     public string User { get; set; } = string.Empty;
     public string Chat { get; set; } = string.Empty;
     public string Message { get; set; } = string.Empty;

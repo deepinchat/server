@@ -1,8 +1,10 @@
-using Duende.IdentityServer;
+using Deepin.Application.IntegrationEvents;
+using Deepin.Application.Interfaces;
+using Deepin.Domain.Identity;
 using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Services;
-using Duende.IdentityServer.Test;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -12,19 +14,20 @@ namespace Deepin.IdentityServer.Pages.Create;
 [AllowAnonymous]
 public class Index : PageModel
 {
-    private readonly TestUserStore _users;
+    private readonly UserManager<User> _userManager;
     private readonly IIdentityServerInteractionService _interaction;
+    private readonly IEventBus _eventBus;
 
     [BindProperty]
     public InputModel Input { get; set; } = default!;
 
     public Index(
         IIdentityServerInteractionService interaction,
-        TestUserStore? users = null)
+        UserManager<User> userManager,
+        IEventBus eventBus)
     {
-        // this is where you would plug in your own custom identity management library (e.g. ASP.NET Identity)
-        _users = users ?? throw new InvalidOperationException("Please call 'AddTestUsers(TestUsers.Users)' on the IIdentityServerBuilder in Startup or remove the TestUserStore from the AccountController.");
-
+        _userManager = userManager;
+        _eventBus = eventBus;
         _interaction = interaction;
     }
 
@@ -66,22 +69,42 @@ public class Index : PageModel
             }
         }
 
-        if (_users.FindByUsername(Input.Username) != null)
+        if (await _userManager.FindByNameAsync(Input.Username) != null)
         {
-            ModelState.AddModelError("Input.Username", "Invalid username");
+            ModelState.AddModelError("Input.Username", "Username already exists");
         }
 
         if (ModelState.IsValid)
         {
-            var user = _users.CreateUser(Input.Username, Input.Password, Input.Name, Input.Email);
-
-            // issue authentication cookie with subject ID and username
-            var isuser = new IdentityServerUser(user.SubjectId)
+            var user = new User(Input.Username, Input.Email!);
+            var result = await _userManager.CreateAsync(user, Input.Password!);
+            if (result.Succeeded)
             {
-                DisplayName = user.Username
-            };
-
-            await HttpContext.SignInAsync(isuser);
+                var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                await _eventBus.PublishAsync(new SendEmailIntegrationEvent(
+                    To: [user.Email!],
+                    Subject: "Confirm your registration",
+                    Body: $@"
+                    <p>Hi {user.UserName},</p>
+                    <p>Your email confirmation code is: <h3>{code}</h3></p>
+                    <p>To confirm your registration, please click the link below:</p>
+                    <p><a href='{Url.Page("/Account/Confirmation", null, new { email = user.Email }, Request.Scheme)}'>Confirm your email</a></p>
+                    <p>If you did not register, please ignore this email.</p>
+                    <p>Best regards,</p>
+                    <p>DEEPIN</p>
+                    <p>Note: This is an automated message, please do not reply.</p>
+                    <p>Thank you for your understanding.</p>",
+                    IsBodyHtml: true,
+                    CC: null));
+                return RedirectToPage("/Account/Confirmation/Index", new { email = user.Email });
+            }
+            else
+            {
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+            }
 
             if (context != null)
             {

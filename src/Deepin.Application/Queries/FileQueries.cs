@@ -16,7 +16,7 @@ public class FileQueries(IDbConnectionFactory dbConnectionFactory, ICacheManager
     {
         using (var connection = await dbConnectionFactory.CreateStorageDbConnectionAsync(cancellationToken))
         {
-            var sql = @"SELECT * FROM files WHERE hash = @hash";
+            var sql = @"SELECT * FROM file_objects WHERE hash = @hash";
             var command = new CommandDefinition(sql, new { hash }, cancellationToken: cancellationToken);
             var result = await connection.QueryFirstOrDefaultAsync<dynamic>(command);
             return result is null ? null : MapFileDto(result);
@@ -30,7 +30,7 @@ public class FileQueries(IDbConnectionFactory dbConnectionFactory, ICacheManager
         {
             using (var connection = await dbConnectionFactory.CreateStorageDbConnectionAsync(cancellationToken))
             {
-                var sql = @"SELECT * FROM files WHERE id = @id";
+                var sql = @"SELECT * FROM file_objects WHERE id = @id";
                 var command = new CommandDefinition(sql, new { id }, cancellationToken: cancellationToken);
                 var result = await connection.QueryFirstOrDefaultAsync<dynamic>(command);
                 return result is null ? null : MapFileDto(result);

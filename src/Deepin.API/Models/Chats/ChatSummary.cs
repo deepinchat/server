@@ -1,4 +1,3 @@
-using System;
 using Deepin.API.Models.Messages;
 using Deepin.Application.DTOs.Chats;
 

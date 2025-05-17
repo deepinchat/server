@@ -1,11 +1,7 @@
-using System;
-using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using Deepin.Domain.Identity;
 using Deepin.Infrastructure.Caching;
-using Deepin.Infrastructure.Configurations;
 using Deepin.Infrastructure.Data;
-using Deepin.Infrastructure.Extensions;
 using Duende.IdentityServer;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
@@ -15,25 +11,9 @@ namespace Deepin.IdentityServer.Extensions;
 
 internal static class ServiceCollectionExtension
 {
-
-    public static IServiceCollection AddCustomInfrastructure(
-        this IServiceCollection services,
-        ConnectionStringOptions connectionStrings,
-        RedisCacheOptions? redisCacheOptions,
-        RabbitMqOptions? rabbitMqOptions,
-        Assembly[] eventConsumerAssemblies)
+    public static IServiceCollection AddCustomDataProtection(this IServiceCollection services, RedisCacheOptions? redisCacheOptions)
     {
-        services
-        .AddIdentityDbContext(connectionStrings.Identity ?? connectionStrings.Default)
-        .AddIdentityServerPersistedGrantDbContext(connectionStrings.IdentityServer ?? connectionStrings.Default)
-        .AddIdentityServerConfigurationDbContext(connectionStrings.IdentityServer ?? connectionStrings.Default);
-        services.AddCaching(redisCacheOptions);
-        services.AddEventBus(eventConsumerAssemblies, rabbitMqOptions);
-        return services;
-    }
-    public static IServiceCollection AddCustomDataProtection(this IServiceCollection services, RedisCacheOptions redisCacheOptions)
-    {
-        if (string.IsNullOrEmpty(redisCacheOptions.ConnectionString))
+        if (redisCacheOptions is null || string.IsNullOrEmpty(redisCacheOptions.ConnectionString))
         {
             throw new ArgumentNullException(nameof(RedisCacheOptions), "Redis connection string must be not null.");
         }
@@ -61,7 +41,7 @@ internal static class ServiceCollectionExtension
 
             // Lockout settings.
             options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
-            options.Lockout.MaxFailedAccessAttempts = 10;
+            options.Lockout.MaxFailedAccessAttempts = 8;
             options.Lockout.AllowedForNewUsers = true;
 
             options.Tokens.PasswordResetTokenProvider = TokenOptions.DefaultEmailProvider;
@@ -69,13 +49,15 @@ internal static class ServiceCollectionExtension
             options.Tokens.EmailConfirmationTokenProvider = TokenOptions.DefaultEmailProvider;
             options.Tokens.AuthenticatorTokenProvider = TokenOptions.DefaultEmailProvider;
         })
-        .AddEntityFrameworkStores<IdentityContext>();
+        .AddEntityFrameworkStores<IdentityContext>()
+        .AddDefaultTokenProviders();
 
         services.ConfigureApplicationCookie(options =>
         {
             // Cookie settings
+            options.Cookie.Name = "deepin.identity";
             options.Cookie.HttpOnly = true;
-            options.ExpireTimeSpan = TimeSpan.FromDays(30);
+            options.ExpireTimeSpan = TimeSpan.FromDays(14);
             options.LoginPath = "/Account/Login";
             options.LogoutPath = "/Account/Logout";
             options.AccessDeniedPath = "/Account/AccessDenied";

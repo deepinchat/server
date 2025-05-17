@@ -1,4 +1,3 @@
-using System;
 using Deepin.Infrastructure.Data;
 using Duende.IdentityServer.EntityFramework.Mappers;
 using Microsoft.EntityFrameworkCore;

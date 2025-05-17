@@ -22,8 +22,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Deepin.API", "src\Deepin.AP
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Deepin.IdentityServer", "src\Deepin.IdentityServer\Deepin.IdentityServer.csproj", "{07FFFBE8-D926-4FF7-8A89-6542407A4C05}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApplication1", "tests\WebApplication1\WebApplication1.csproj", "{213C2112-FAE1-4A97-9FA6-D2154A9406EC}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -50,10 +48,6 @@ Global
 		{07FFFBE8-D926-4FF7-8A89-6542407A4C05}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{07FFFBE8-D926-4FF7-8A89-6542407A4C05}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{07FFFBE8-D926-4FF7-8A89-6542407A4C05}.Release|Any CPU.Build.0 = Release|Any CPU
-		{213C2112-FAE1-4A97-9FA6-D2154A9406EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{213C2112-FAE1-4A97-9FA6-D2154A9406EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{213C2112-FAE1-4A97-9FA6-D2154A9406EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{213C2112-FAE1-4A97-9FA6-D2154A9406EC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -64,6 +58,5 @@ Global
 		{EA958175-7A90-42E0-B707-223E62AE2223} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{51C7E934-B69F-48D5-9E83-6C1C6EC85AE5} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{07FFFBE8-D926-4FF7-8A89-6542407A4C05} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
-		{213C2112-FAE1-4A97-9FA6-D2154A9406EC} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 	EndGlobalSection
 EndGlobal

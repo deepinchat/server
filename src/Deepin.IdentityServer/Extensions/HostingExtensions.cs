@@ -1,5 +1,6 @@
 using System.Reflection;
-using Deepin.Application.Extensions;
+using Deepin.Application.Interfaces;
+using Deepin.IdentityServer.Services;
 using Deepin.IdentityServer.Setup;
 using Deepin.Infrastructure.Caching;
 using Deepin.Infrastructure.Configurations;
@@ -15,12 +16,14 @@ public static class HostingExtensions
     {
         var redisOptions = builder.Configuration.GetSection("Redis").Get<RedisCacheOptions>();
         builder.Services
-        .AddCustomInfrastructure(
-            connectionStrings: builder.Configuration.GetSection("ConnectionStrings").Get<ConnectionStringOptions>() ?? throw new ArgumentNullException("ConnectionStrings must be not null."),
+        .AddInfrastructure(
+            connectionStringOptions: builder.Configuration.GetSection("ConnectionStrings").Get<ConnectionStringOptions>() ?? throw new ArgumentNullException("ConnectionStrings must be not null."),
             redisCacheOptions: redisOptions,
+            smtpOptions: null,
+            storageOptions: null,
             rabbitMqOptions: builder.Configuration.GetSection("RabbitMq").Get<RabbitMqOptions>(),
             eventConsumerAssemblies: [Assembly.GetExecutingAssembly()])
-        .AddApplication()
+        .AddCustomDataProtection(redisOptions)
         .AddCustomIdentity()
         .AddCustomIdentityServer(builder.Configuration, builder.Environment);
 
@@ -33,11 +36,17 @@ public static class HostingExtensions
             .AddMigration<IdentityContext>()
             .AddMigration<ConfigurationContext>((db, sp) => new ConfigurationDbSeeder(db).SeedAsync())
             .AddMigration<PersistedGrantContext>();
+
+        builder.Services
+            .AddHttpContextAccessor()
+            .AddTransient<IUserContext, WebUserContext>();
+
         return builder;
     }
 
     public static WebApplication UseApplicationService(this WebApplication app)
-    {// Configure the HTTP request pipeline.
+    {
+        // Configure the HTTP request pipeline.
         if (!app.Environment.IsDevelopment())
         {
             app.UseExceptionHandler("/Error");

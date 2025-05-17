@@ -1,11 +1,12 @@
+using Deepin.Domain.Identity;
 using Duende.IdentityServer;
 using Duende.IdentityServer.Events;
 using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Services;
 using Duende.IdentityServer.Stores;
-using Duende.IdentityServer.Test;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -15,7 +16,8 @@ namespace Deepin.IdentityServer.Pages.Login;
 [AllowAnonymous]
 public class Index : PageModel
 {
-    private readonly TestUserStore _users;
+    private readonly UserManager<User> _userManager;
+    private readonly SignInManager<User> _signInManager;
     private readonly IIdentityServerInteractionService _interaction;
     private readonly IEventService _events;
     private readonly IAuthenticationSchemeProvider _schemeProvider;
@@ -27,15 +29,15 @@ public class Index : PageModel
     public InputModel Input { get; set; } = default!;
 
     public Index(
+        UserManager<User> userManager,
+        SignInManager<User> signInManager,
         IIdentityServerInteractionService interaction,
         IAuthenticationSchemeProvider schemeProvider,
         IIdentityProviderStore identityProviderStore,
-        IEventService events,
-        TestUserStore? users = null)
+        IEventService events)
     {
-        // this is where you would plug in your own custom identity management library (e.g. ASP.NET Identity)
-        _users = users ?? throw new InvalidOperationException("Please call 'AddTestUsers(TestUsers.Users)' on the IIdentityServerBuilder in Startup or remove the TestUserStore from the AccountController.");
-
+        _userManager = userManager;
+        _signInManager = signInManager;
         _interaction = interaction;
         _schemeProvider = schemeProvider;
         _identityProviderStore = identityProviderStore;
@@ -92,60 +94,65 @@ public class Index : PageModel
 
         if (ModelState.IsValid)
         {
-            // validate username/password against in-memory store
-            if (_users.ValidateCredentials(Input.Username, Input.Password))
+            var user = await _userManager.FindByNameAsync(Input.Username!);
+            if (user != null)
             {
-                var user = _users.FindByUsername(Input.Username);
-                await _events.RaiseAsync(new UserLoginSuccessEvent(user.Username, user.SubjectId, user.Username, clientId: context?.Client.ClientId));
-                Telemetry.Metrics.UserLogin(context?.Client.ClientId, IdentityServerConstants.LocalIdentityProvider);
-
-                // only set explicit expiration here if user chooses "remember me". 
-                // otherwise we rely upon expiration configured in cookie middleware.
-                var props = new AuthenticationProperties();
-                if (LoginOptions.AllowRememberLogin && Input.RememberLogin)
+                // validate credentials
+                var result = await _signInManager.PasswordSignInAsync(user, Input.Password!, Input.RememberLogin, lockoutOnFailure: false);
+                if (result.Succeeded)
                 {
-                    props.IsPersistent = true;
-                    props.ExpiresUtc = DateTimeOffset.UtcNow.Add(LoginOptions.RememberMeLoginDuration);
-                }
-
-                // issue authentication cookie with subject ID and username
-                var isuser = new IdentityServerUser(user.SubjectId)
-                {
-                    DisplayName = user.Username
-                };
-
-                await HttpContext.SignInAsync(isuser, props);
-
-                if (context != null)
-                {
-                    // This "can't happen", because if the ReturnUrl was null, then the context would be null
-                    ArgumentNullException.ThrowIfNull(Input.ReturnUrl, nameof(Input.ReturnUrl));
-
-                    if (context.IsNativeClient())
+                    await _events.RaiseAsync(new UserLoginSuccessEvent(user.UserName, user.Id.ToString(), user.UserName, clientId: context?.Client.ClientId));
+                    Telemetry.Metrics.UserLogin(context?.Client.ClientId, IdentityServerConstants.LocalIdentityProvider);
+                    if (context != null)
                     {
-                        // The client is native, so this change in how to
-                        // return the response is for better UX for the end user.
-                        return this.LoadingPage(Input.ReturnUrl);
+                        // This "can't happen", because if the ReturnUrl was null, then the context would be null
+                        ArgumentNullException.ThrowIfNull(Input.ReturnUrl, nameof(Input.ReturnUrl));
+
+                        if (context.IsNativeClient())
+                        {
+                            // The client is native, so this change in how to
+                            // return the response is for better UX for the end user.
+                            return this.LoadingPage(Input.ReturnUrl);
+                        }
+
+                        // we can trust model.ReturnUrl since GetAuthorizationContextAsync returned non-null
+                        return Redirect(Input.ReturnUrl ?? "~/");
                     }
 
-                    // we can trust model.ReturnUrl since GetAuthorizationContextAsync returned non-null
-                    return Redirect(Input.ReturnUrl ?? "~/");
+                    // request for a local page
+                    if (Url.IsLocalUrl(Input.ReturnUrl))
+                    {
+                        return Redirect(Input.ReturnUrl);
+                    }
+                    else if (string.IsNullOrEmpty(Input.ReturnUrl))
+                    {
+                        return Redirect("~/");
+                    }
+                    else
+                    {
+                        // user might have clicked on a malicious link - should be logged
+                        throw new ArgumentException("invalid return URL");
+                    }
+                }
+                else if (result.IsNotAllowed)
+                {
+                    // Account is not confirmed
+                    return RedirectToPage("/Account/Confirmation/Index", new { email = user.Email, returnUrl = Input.ReturnUrl });
+                }
+                else if (result.RequiresTwoFactor)
+                {
+                    // Two factor authentication is required
+                    return RedirectToPage("/Account/TwoFactor/Index", new { returnUrl = Input.ReturnUrl });
+                }
+                else if (result.IsLockedOut)
+                {
+                    // Account is locked out
+                    ModelState.AddModelError(string.Empty, LoginOptions.LockedOutErrorMessage);
+                    await _events.RaiseAsync(new UserLoginFailureEvent(Input.Username, "account is locked out", clientId: context?.Client.ClientId));
+                    Telemetry.Metrics.UserLoginFailure(context?.Client.ClientId, IdentityServerConstants.LocalIdentityProvider, LoginOptions.LockedOutErrorMessage);
+                    return Page();
                 }
 
-                // request for a local page
-                if (Url.IsLocalUrl(Input.ReturnUrl))
-                {
-                    return Redirect(Input.ReturnUrl);
-                }
-                else if (string.IsNullOrEmpty(Input.ReturnUrl))
-                {
-                    return Redirect("~/");
-                }
-                else
-                {
-                    // user might have clicked on a malicious link - should be logged
-                    throw new ArgumentException("invalid return URL");
-                }
             }
 
             const string error = "invalid credentials";

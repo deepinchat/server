@@ -23,26 +23,46 @@ namespace Deepin.Infrastructure.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services, AppOptions appOptions, Assembly[] eventConsumerAssemblies)
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services,
+    ConnectionStringOptions connectionStringOptions,
+    RedisCacheOptions? redisCacheOptions,
+    SmtpOptions? smtpOptions,
+    StorageOptions? storageOptions,
+    RabbitMqOptions? rabbitMqOptions,
+    Assembly[] eventConsumerAssemblies)
     {
-        services.AddSingleton(appOptions);
-        services.AddDbContexts(appOptions.ConnectionStrings);
-        services.AddCaching(appOptions.Redis);
-        services.AddEmailSender(appOptions.Smtp);
-        services.AddStorageProvider(appOptions.Storage ?? throw new ArgumentNullException(nameof(appOptions.Storage), "Storage options cannot be null"));
-        services.AddEventBus(eventConsumerAssemblies, appOptions.RabbitMq);
+        if (connectionStringOptions is not null)
+        {
+            services.AddDbContexts(connectionStringOptions);
+        }
+        if (redisCacheOptions is not null)
+        {
+            services.AddCaching(redisCacheOptions);
+        }
+        if (smtpOptions is not null)
+        {
+            services.AddEmailSender(smtpOptions);
+        }
+        if (storageOptions is not null)
+        {
+            services.AddStorageProvider(storageOptions);
+        }
+
+        services.AddEventBus(eventConsumerAssemblies, rabbitMqOptions);
         return services;
     }
     public static IServiceCollection AddEmailSender(this IServiceCollection services, SmtpOptions? smtpOptions = null)
     {
         if (smtpOptions is null || smtpOptions.IsEnabled == false)
         {
+            smtpOptions = new SmtpOptions();
             services.AddSingleton<IEmailSender, FakeEmailSender>();
         }
         else
         {
             services.AddSingleton<IEmailSender>(sp => new SmtpEmailSender(sp.GetRequiredService<ILogger<SmtpEmailSender>>(), smtpOptions));
         }
+        services.AddSingleton(smtpOptions);
         return services;
     }
     public static IServiceCollection AddCaching(this IServiceCollection services, RedisCacheOptions? options = null)
@@ -67,17 +87,37 @@ public static class ServiceCollectionExtensions
             throw new ArgumentNullException(nameof(connectionStrings), "Connection strings cannot be null");
         }
 
-        services
-        .AddChatDbContext(connectionStrings.Chat ?? connectionStrings.Default)
-        .AddContactDbContext(connectionStrings.Contact ?? connectionStrings.Default)
-        .AddStorageDbContext(connectionStrings.Storage ?? connectionStrings.Default)
-        .AddNotificationDbContext(connectionStrings.Notification ?? connectionStrings.Default)
-        .AddMessageDbContext(connectionStrings.Message ?? connectionStrings.Default)
-        .AddIdentityDbContext(connectionStrings.Identity ?? connectionStrings.Default)
-        .AddIdentityServerPersistedGrantDbContext(connectionStrings.IdentityServer ?? connectionStrings.Default)
-        .AddIdentityServerConfigurationDbContext(connectionStrings.IdentityServer ?? connectionStrings.Default);
+        if (!string.IsNullOrWhiteSpace(connectionStrings.Chat))
+        {
+            services.AddChatDbContext(connectionStrings.Chat);
+        }
+        if (!string.IsNullOrWhiteSpace(connectionStrings.Contact))
+        {
+            services.AddContactDbContext(connectionStrings.Contact);
+        }
+        if (!string.IsNullOrWhiteSpace(connectionStrings.Storage))
+        {
+            services.AddStorageDbContext(connectionStrings.Storage);
+        }
+        if (!string.IsNullOrWhiteSpace(connectionStrings.Notification))
+        {
+            services.AddNotificationDbContext(connectionStrings.Notification);
+        }
+        if (!string.IsNullOrWhiteSpace(connectionStrings.Message))
+        {
+            services.AddMessageDbContext(connectionStrings.Message);
+        }
+        if (!string.IsNullOrWhiteSpace(connectionStrings.Identity))
+        {
+            services.AddIdentityDbContext(connectionStrings.Identity);
+        }
+        if (!string.IsNullOrWhiteSpace(connectionStrings.IdentityServer))
+        {
+            services.AddIdentityServerPersistedGrantDbContext(connectionStrings.IdentityServer);
+            services.AddIdentityServerConfigurationDbContext(connectionStrings.IdentityServer);
+        }
 
-        services.AddScoped<IDbConnectionFactory, NpgsqlDbConnectionFactory>();
+        services.AddScoped<IDbConnectionFactory>(sp => new NpgsqlDbConnectionFactory(connectionStrings));
         return services;
     }
     public static IServiceCollection AddChatDbContext(this IServiceCollection services, string connectionString)

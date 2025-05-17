@@ -4,36 +4,33 @@ using Deepin.Infrastructure.Configurations;
 
 namespace Deepin.Infrastructure.Data;
 
-public class NpgsqlDbConnectionFactory(AppOptions appOptions) : IDbConnectionFactory
+public class NpgsqlDbConnectionFactory(ConnectionStringOptions connectionStrings) : IDbConnectionFactory
 {
     public async Task<IDbConnection> CreateChatDbConnectionAsync(CancellationToken cancellationToken = default)
     {
-        var connectionString = appOptions.ConnectionStrings.Chat ?? appOptions.ConnectionStrings.Default;
-        if (string.IsNullOrEmpty(connectionString))
+        if (string.IsNullOrEmpty(connectionStrings.Chat))
         {
             throw new ArgumentException($"Chat Connection string not found.");
         }
 
-        return await CreateDbConnectionAsync(connectionString, ChatDbContext.DEFAULT_SCHEMA, cancellationToken);
+        return await CreateDbConnectionAsync(connectionStrings.Chat, ChatDbContext.DEFAULT_SCHEMA, cancellationToken);
     }
     public async Task<IDbConnection> CreateStorageDbConnectionAsync(CancellationToken cancellationToken = default)
     {
-        var connectionString = appOptions.ConnectionStrings.Storage ?? appOptions.ConnectionStrings.Default;
-        if (string.IsNullOrEmpty(connectionString))
+        if (string.IsNullOrEmpty(connectionStrings.Storage))
         {
             throw new ArgumentException($"Chat Connection string not found.");
         }
-        return await CreateDbConnectionAsync(connectionString, StorageDbContext.DEFAULT_SCHEMA, cancellationToken);
+        return await CreateDbConnectionAsync(connectionStrings.Storage, StorageDbContext.DEFAULT_SCHEMA, cancellationToken);
     }
 
     public async Task<IDbConnection> CreateIdentityDbConnectionAsync(CancellationToken cancellationToken = default)
-    {
-        var connectionString = appOptions.ConnectionStrings.Identity ?? appOptions.ConnectionStrings.Default;
-        if (string.IsNullOrEmpty(connectionString))
+    { 
+        if (string.IsNullOrEmpty(connectionStrings.Identity))
         {
             throw new ArgumentException($"Identity Connection string not found.");
         }
-        return await CreateDbConnectionAsync(connectionString, IdentityContext.DEFAULT_SCHEMA, cancellationToken);
+        return await CreateDbConnectionAsync(connectionStrings.Identity, IdentityContext.DEFAULT_SCHEMA, cancellationToken);
     }
 
     public async Task<IDbConnection> CreateDbConnectionAsync(string connectionString, string schema, CancellationToken cancellationToken = default)

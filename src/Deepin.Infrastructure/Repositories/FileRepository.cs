@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 public class FileRepository(StorageDbContext db) : IFileRepository
 {
-    public IUnitOfWork UnitOfWork => throw new NotImplementedException();
+    public IUnitOfWork UnitOfWork => db;
 
     public async Task AddAsync(FileObject entity, CancellationToken cancellationToken = default)
     {

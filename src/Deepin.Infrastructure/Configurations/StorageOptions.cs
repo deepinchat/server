@@ -1,10 +1,11 @@
 using Deepin.Domain.FileAggregate;
-using Newtonsoft.Json.Linq;
+using Deepin.Infrastructure.FileStorage;
 
 namespace Deepin.Infrastructure.Configurations;
 
 public class StorageOptions
 {
     public StorageProvider Provider { get; set; } = StorageProvider.Local;
-    public required JObject Config { get; set; }
+    public LocalFileStorageOptions? FileSystem { get; set; }
+    public S3FileStorageOptions? S3 { get; set; }
 }

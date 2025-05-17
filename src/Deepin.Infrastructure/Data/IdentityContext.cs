@@ -1,8 +1,8 @@
-using System;
 using Deepin.Domain.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Design;
 
 namespace Deepin.Infrastructure.Data;
 
@@ -38,5 +38,14 @@ public class IdentityContext : IdentityDbContext<User, Role, Guid>
         });
         builder.Entity<IdentityRoleClaim<Guid>>().ToTable("role_claims");
         builder.Entity<IdentityUserRole<Guid>>().ToTable("user_roles");
+    }
+}
+public class IdentityContextFactory : IDesignTimeDbContextFactory<IdentityContext>
+{
+    public IdentityContext CreateDbContext(string[] args)
+    {
+        var optionsBuilder = new DbContextOptionsBuilder<IdentityContext>();
+        optionsBuilder.UseNpgsql("Host=localhost");
+        return new IdentityContext(optionsBuilder.Options);
     }
 }

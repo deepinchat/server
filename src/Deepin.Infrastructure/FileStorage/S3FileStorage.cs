@@ -15,8 +15,8 @@ public class S3FileStorageOptions
 public class S3FileStorage(StorageOptions options) : IFileStorage
 {
     public StorageProvider Provider => StorageProvider.AwsS3;
-    private readonly S3FileStorageOptions _options = options.Config.ToObject<S3FileStorageOptions>()
-        ?? throw new ArgumentNullException(nameof(options.Config), "S3 file storage options are not configured.");
+    private readonly S3FileStorageOptions _options = options.S3
+        ?? throw new ArgumentNullException(nameof(options.S3), "S3 file storage options are not configured.");
 
     public Task<string> BuildStorageKeyAsync(Guid id, string fileName, string? containerName = null, CancellationToken cancellationToken = default)
     {

@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
-using Deepin.Application.Interfaces;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Polly;
 using Polly.Contrib.WaitAndRetry;
@@ -31,14 +32,14 @@ public static class HttpClientExtensions
         return builder;
     }
 }
-public class HttpClientAuthorizationDelegatingHandler(IUserContext userContext) : DelegatingHandler
+public class HttpClientAuthorizationDelegatingHandler(IHttpContextAccessor httpContextAccessor) : DelegatingHandler
 {
-    private readonly IUserContext _userContext = userContext;
+    private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         if (request.Headers.Authorization == null)
         {
-            var accessToken = _userContext.AccessToken;
+            var accessToken = _httpContextAccessor.HttpContext?.GetTokenAsync("access_token").Result ?? string.Empty;
             if (!string.IsNullOrEmpty(accessToken))
             {
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);

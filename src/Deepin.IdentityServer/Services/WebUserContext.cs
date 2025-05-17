@@ -1,13 +1,15 @@
-﻿using Deepin.Application.Interfaces;
-using Duende.IdentityServer.Extensions;
 using System.Security.Claims;
+using Deepin.Application.Interfaces;
+using Duende.IdentityServer.Extensions;
 
-namespace Deepin.API.Services;
-public class HttpUserContext : IUserContext
+namespace Deepin.IdentityServer.Services;
+ 
+
+public class WebUserContext : IUserContext
 {
     private readonly IHttpContextAccessor _context;
 
-    public HttpUserContext(IHttpContextAccessor httpContextAccessor)
+    public WebUserContext(IHttpContextAccessor httpContextAccessor)
     {
         _context = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
     }
