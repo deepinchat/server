@@ -2,6 +2,7 @@ using Dapper;
 using Deepin.Application.DTOs.Files;
 using Deepin.Application.Interfaces;
 using Deepin.Chatting.Application.Constants;
+using Deepin.Domain.FileAggregate;
 
 namespace Deepin.Application.Queries;
 public interface IFileQueries
@@ -53,7 +54,7 @@ public class FileQueries(IDbConnectionFactory dbConnectionFactory, ICacheManager
             Hash = row.hash,
             Length = row.length,
             StorageKey = row.storage_key,
-            Provider = row.provider
+            Provider = Enum.Parse<StorageProvider>(row.provider.ToString(), true),
         };
     }
 }

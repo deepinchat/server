@@ -8,6 +8,7 @@ using HeyRed.Mime;
 using MediatR;
 
 namespace Deepin.Application.Commands.Files;
+
 public class UploadFileCommandHandler(IMapper mapper, IFileStorage fileStorage, IFileRepository fileRepository, IFileQueries fileQueries) : IRequestHandler<UploadFileCommand, FileDto>
 {
     public async Task<FileDto> Handle(UploadFileCommand request, CancellationToken cancellationToken)
@@ -16,11 +17,15 @@ public class UploadFileCommandHandler(IMapper mapper, IFileStorage fileStorage, 
         var existingFile = await fileQueries.GetByHashAsync(hash, cancellationToken);
         if (existingFile is not null)
         {
-            return existingFile;
+            var physicalFileExists = await fileStorage.ExistsAsync(existingFile, cancellationToken);
+            if (physicalFileExists)
+            {
+                return existingFile;
+            }
         }
         var checksum = FileHelper.GetCRC32Checksum(request.FileStream, cancellationToken);
         var fileId = Guid.NewGuid();
-        var storageKey = request.StorageKey ?? await fileStorage.BuildStorageKeyAsync(fileId, request.FileName, request.ContainerName);
+        var storageKey = await fileStorage.BuildStorageKeyAsync(hash, request.ContainerName, request.StorageKey, cancellationToken);
         var file = new FileObject(
             id: fileId,
             uploaderUserId: request.UserId,

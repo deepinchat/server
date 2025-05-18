@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Deepin.Infrastructure.EntityTypeConfigurations;
+
 public class FileObjectEntityTypeConfiguration : IEntityTypeConfiguration<FileObject>
 {
     public void Configure(EntityTypeBuilder<FileObject> builder)
@@ -11,7 +12,7 @@ public class FileObjectEntityTypeConfiguration : IEntityTypeConfiguration<FileOb
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).HasColumnName("id").HasColumnType("uuid");
         builder.Property(x => x.ContainerName).HasColumnName("container_name");
-        builder.Property(x => x.Provider).HasColumnName("provider");
+        builder.Property(x => x.Provider).HasColumnName("provider").HasColumnType("text").HasConversion<string>();
         builder.Property(x => x.Hash).HasColumnName("hash");
         builder.Property(x => x.Checksum).HasColumnName("checksum");
         builder.Property(x => x.Name).HasColumnName("name");

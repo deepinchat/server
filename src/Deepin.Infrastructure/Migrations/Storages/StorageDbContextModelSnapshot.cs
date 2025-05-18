@@ -18,7 +18,7 @@ namespace Deepin.Infrastructure.Migrations.Storages
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("storage")
-                .HasAnnotation("ProductVersion", "9.0.2")
+                .HasAnnotation("ProductVersion", "9.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -71,8 +71,9 @@ namespace Deepin.Infrastructure.Migrations.Storages
                         .HasColumnType("text")
                         .HasColumnName("name");
 
-                    b.Property<int>("Provider")
-                        .HasColumnType("integer")
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasColumnType("text")
                         .HasColumnName("provider");
 
                     b.Property<string>("StorageKey")

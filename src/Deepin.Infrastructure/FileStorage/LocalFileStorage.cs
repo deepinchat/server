@@ -1,9 +1,11 @@
-﻿using Deepin.Application.DTOs.Files;
+﻿using System.Threading.Tasks;
+using Deepin.Application.DTOs.Files;
 using Deepin.Application.Interfaces;
 using Deepin.Domain.FileAggregate;
 using Deepin.Infrastructure.Configurations;
 
 namespace Deepin.Infrastructure.FileStorage;
+
 public class LocalFileStorageOptions
 {
     public required string RootPath { get; set; }
@@ -15,13 +17,14 @@ public class LocalFileStorage(StorageOptions options) : IFileStorage
 
     public StorageProvider Provider => StorageProvider.Local;
 
-    private string GetFullPath(string relativePath)
+    private string GetFullPath(FileDto file)
     {
-        return Path.Combine(_rootPath, relativePath);
+        var fullPath = Path.Combine(_rootPath, file.StorageKey);
+        return fullPath;
     }
     public async Task CreateAsync(FileDto file, Stream stream, CancellationToken cancellationToken = default)
     {
-        var fullPath = GetFullPath(file.StorageKey);
+        var fullPath = GetFullPath(file);
         var dir = Path.GetDirectoryName(fullPath);
         if (!Directory.Exists(dir))
         {
@@ -35,7 +38,7 @@ public class LocalFileStorage(StorageOptions options) : IFileStorage
 
     public async Task DeleteAsync(FileDto file, CancellationToken cancellationToken = default)
     {
-        var fullPath = GetFullPath(file.StorageKey);
+        var fullPath = GetFullPath(file);
         var fileInfo = new FileInfo(fullPath);
         if (fileInfo.Exists)
         {
@@ -44,26 +47,24 @@ public class LocalFileStorage(StorageOptions options) : IFileStorage
         await Task.CompletedTask;
     }
 
-    public async Task<Stream> GetStreamAsync(FileDto file, CancellationToken cancellationToken = default)
+    public async Task<Stream?> GetStreamAsync(FileDto file, CancellationToken cancellationToken = default)
     {
-        var fullPath = GetFullPath(file.StorageKey);
+        var fullPath = GetFullPath(file);
         var fileInfo = new FileInfo(fullPath);
         if (!fileInfo.Exists)
-            return Stream.Null;
+            return null;
         return await Task.FromResult(fileInfo.OpenRead());
     }
 
     public Task<bool> ExistsAsync(FileDto file, CancellationToken cancellationToken = default)
     {
-        var fullPath = GetFullPath(file.StorageKey);
+        var fullPath = GetFullPath(file);
         var fileInfo = new FileInfo(fullPath);
         return Task.FromResult(fileInfo.Exists);
     }
 
-    public Task<string> BuildStorageKeyAsync(Guid id, string fileName, string? containerName = null, CancellationToken cancellationToken = default)
+    public Task<string> BuildStorageKeyAsync(string hash, string? containerName = null, string? storageKey = null, CancellationToken cancellationToken = default)
     {
-        var extension = Path.GetExtension(fileName);
-        var storageKey = $"{id}{extension}";
-        return Task.FromResult(Path.Combine(containerName ?? DateTimeOffset.UtcNow.ToString("yyyy/MM"), storageKey));
+        return Task.FromResult(Path.Combine(containerName ?? DateTimeOffset.UtcNow.ToString("yyyy/MM"), hash));
     }
 }

@@ -8,7 +8,7 @@ public interface IFileStorage
     StorageProvider Provider { get; }
     Task CreateAsync(FileDto file, Stream stream, CancellationToken cancellationToken = default);
     Task DeleteAsync(FileDto file, CancellationToken cancellationToken = default);
-    Task<Stream> GetStreamAsync(FileDto file, CancellationToken cancellationToken = default);
+    Task<Stream?> GetStreamAsync(FileDto file, CancellationToken cancellationToken = default);
     Task<bool> ExistsAsync(FileDto file, CancellationToken cancellationToken = default);
-    Task<string> BuildStorageKeyAsync(Guid id, string fileName, string? containerName = null, CancellationToken cancellationToken = default);
+    Task<string> BuildStorageKeyAsync(string hash, string? containerName = null, string? storageKey = null, CancellationToken cancellationToken = default);
 }

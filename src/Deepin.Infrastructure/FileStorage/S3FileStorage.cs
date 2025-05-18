@@ -18,7 +18,7 @@ public class S3FileStorage(StorageOptions options) : IFileStorage
     private readonly S3FileStorageOptions _options = options.S3
         ?? throw new ArgumentNullException(nameof(options.S3), "S3 file storage options are not configured.");
 
-    public Task<string> BuildStorageKeyAsync(Guid id, string fileName, string? containerName = null, CancellationToken cancellationToken = default)
+    public Task<string> BuildStorageKeyAsync(string hash, string? containerName = null, string? storageKey = null, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
     }
@@ -38,7 +38,7 @@ public class S3FileStorage(StorageOptions options) : IFileStorage
         throw new NotImplementedException();
     }
 
-    public Task<Stream> GetStreamAsync(FileDto file, CancellationToken cancellationToken = default)
+    public Task<Stream?> GetStreamAsync(FileDto file, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
     }
