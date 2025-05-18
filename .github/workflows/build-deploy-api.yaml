@@ -1,4 +1,4 @@
-name: Docker Image CI for Identity API
+name: Docker Image CI for Monolith API
 
 on:
   push:
