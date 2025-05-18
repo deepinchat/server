@@ -72,7 +72,11 @@ internal static class Config
                 ClientName = "Deepin Swagger UI",
                 AllowedGrantTypes = GrantTypes.Implicit,
                 AllowAccessTokensViaBrowser = true,
-                RedirectUris = {"http://localhost:5000/swagger/oauth2-redirect.html","https://localhost:5000/swagger/oauth2-redirect.html"},
+                RedirectUris = {
+                    "http://localhost:5000/swagger/oauth2-redirect.html",
+                    "https://localhost:5000/swagger/oauth2-redirect.html",
+                    "https://gateway.deepin.me/swagger/oauth2-redirect.html"
+                    },
                 AllowedScopes = [
                     IdentityServerConstants.StandardScopes.OpenId,
                     IdentityServerConstants.StandardScopes.Profile,
