@@ -6,7 +6,7 @@ namespace Deepin.Infrastructure.Repositories;
 
 public class MessageReactionRepository(MessageDbContext db) : IMessageReactionRepository
 {
-    public IUnitOfWork UnitOfWork => throw new NotImplementedException();
+    public IUnitOfWork UnitOfWork => db;
 
     public async Task AddAsync(MessageReaction entity, CancellationToken cancellationToken = default)
     {

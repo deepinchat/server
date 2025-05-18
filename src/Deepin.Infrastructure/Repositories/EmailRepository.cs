@@ -6,7 +6,7 @@ namespace Deepin.Infrastructure.Repositories;
 
 public class EmailRepository(NotificationDbContext db) : IEmailRepository
 {
-    public IUnitOfWork UnitOfWork => throw new NotImplementedException();
+    public IUnitOfWork UnitOfWork => db;
 
     public async Task AddAsync(Email entity, CancellationToken cancellationToken = default)
     {
