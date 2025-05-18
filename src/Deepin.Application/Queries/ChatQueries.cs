@@ -47,7 +47,15 @@ public class ChatQueries(IDbConnectionFactory dbConnectionFactory, ICacheManager
         {
             using (var connection = await _dbConnectionFactory.CreateChatDbConnectionAsync(cancellationToken))
             {
-                var sql = @"SELECT * FROM chats WHERE id = @id";
+                var sql = @"
+                SELECT 
+                    * 
+                FROM 
+                    chats 
+                WHERE 
+                    id = @id 
+                AND 
+                    is_deleted = false";
                 var command = new CommandDefinition(sql, new { id }, cancellationToken: cancellationToken);
                 var result = await connection.QueryFirstOrDefaultAsync<dynamic>(command);
                 return result is null ? null : MapChatDto(result);
@@ -135,8 +143,7 @@ public class ChatQueries(IDbConnectionFactory dbConnectionFactory, ICacheManager
             Type = Enum.Parse<ChatType>(result.type, true),
             CreatedAt = result.created_at,
             UpdatedAt = result.updated_at,
-            CreatedBy = result.created_by,
-            IsDeleted = result.is_deleted
+            CreatedBy = result.created_by
         };
         if (dto.Type != ChatType.Direct)
         {

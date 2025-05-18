@@ -9,7 +9,7 @@ public class Message : Entity<Guid>, IAggregateRoot
     public Guid? ParentId { get; set; }
     public Guid? ReplyToId { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
-    public DateTimeOffset ModifiedAt { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; }
     public string? Text { get; private set; }
     public string? Mentions { get; private set; }
     public string? Metadata { get; private set; }
@@ -21,7 +21,7 @@ public class Message : Entity<Guid>, IAggregateRoot
     public Message()
     {
         CreatedAt = DateTimeOffset.UtcNow;
-        ModifiedAt = DateTimeOffset.UtcNow;
+        UpdatedAt = DateTimeOffset.UtcNow;
     }
     public Message(MessageType type, Guid chatId, Guid userId, string? text = null, Guid? parentId = null, Guid? replyToId = null, string? mentions = null, string? metadata = null) : this()
     {
@@ -37,33 +37,33 @@ public class Message : Entity<Guid>, IAggregateRoot
     public void AddAttachment(MessageAttachment attachment)
     {
         _attachments.Add(attachment);
-        ModifiedAt = DateTimeOffset.UtcNow;
+        UpdatedAt = DateTimeOffset.UtcNow;
     }
     public void Edit(string text, string? metadata = null)
     {
         Text = text;
         Metadata = metadata;
         IsEdited = true;
-        ModifiedAt = DateTimeOffset.UtcNow;
+        UpdatedAt = DateTimeOffset.UtcNow;
     }
     public void Delete()
     {
         IsDeleted = true;
-        ModifiedAt = DateTimeOffset.UtcNow;
+        UpdatedAt = DateTimeOffset.UtcNow;
     }
     public void MarkAsRead()
     {
         IsRead = true;
-        ModifiedAt = DateTimeOffset.UtcNow;
+        UpdatedAt = DateTimeOffset.UtcNow;
     }
     public void Pin()
     {
         IsPinned = true;
-        ModifiedAt = DateTimeOffset.UtcNow;
+        UpdatedAt = DateTimeOffset.UtcNow;
     }
     public void Unpin()
     {
         IsPinned = false;
-        ModifiedAt = DateTimeOffset.UtcNow;
+        UpdatedAt = DateTimeOffset.UtcNow;
     }
 }

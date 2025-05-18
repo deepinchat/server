@@ -7,6 +7,10 @@ public class CreateDirectChatCommandValidator : AbstractValidator<CreateDirectCh
 {
     public CreateDirectChatCommandValidator()
     {
-        RuleFor(x => x.UserIds).NotEmpty().WithMessage("UserIds is required");
+        RuleFor(x => x.OwnerId).NotEmpty().WithMessage("Chat owner id is required");
+        RuleFor(x => x.Others)
+            .NotNull()
+            .NotEmpty()
+            .WithMessage("At least one other user id is required");
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -27,7 +28,7 @@ namespace Deepin.Infrastructure.Migrations.Chats
                     name = table.Column<string>(type: "text", nullable: true),
                     user_name = table.Column<string>(type: "text", nullable: true),
                     description = table.Column<string>(type: "text", nullable: true),
-                    avatar_file_id = table.Column<string>(type: "text", nullable: true),
+                    avatar_file_id = table.Column<Guid>(type: "uuid", nullable: true),
                     is_public = table.Column<bool>(type: "boolean", nullable: true)
                 },
                 constraints: table =>

@@ -49,7 +49,7 @@ public class ChatService(IMediator mediator, IChatQueries chatQueries, IMessageQ
             return [];
         }
         var chatReadStaueses = await chatQueries.GetChatReadStatusesAsync(userId, cancellationToken);
-        var lastMessageIds = await messageQueries.GetLastIdsAsync(chats.Select(c => c.Id), cancellationToken);
+        var lastMessageIds = await messageQueries.GetLastIdsAsync(chats.Select(c => c.Id).ToArray(), cancellationToken);
         var chatSummaries = new List<ChatSummary>();
         foreach (var chat in chats)
         {

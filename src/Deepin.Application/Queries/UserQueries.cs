@@ -27,24 +27,24 @@ public class UserQueries(IDbConnectionFactory dbConnectionFactory) : IUserQuerie
         {
             var sql = @"
                 SELECT 
-                    u.Id,
-                    u.UserName,
-                    u.Email,
-                    u.PhoneNumber,
-                    u.TwoFactorEnabled,
-                    u.EmailConfirmed,
-                    u.PhoneNumberConfirmed,
-                    u.CreatedAt,
-                    u.UpdatedAt,
-                    uc.Id AS ClaimId,
-                    uc.ClaimType,
-                    uc.ClaimValue
+                    u.""Id"",
+                    u.""UserName"",
+                    u.""Email"",
+                    u.""PhoneNumber"",
+                    u.""TwoFactorEnabled"",
+                    u.""EmailConfirmed"",
+                    u.""PhoneNumberConfirmed"",
+                    u.""CreatedAt"",
+                    u.""UpdatedAt"",
+                    uc.""Id"" AS ""ClaimId"",
+                    uc.""ClaimType"",
+                    uc.""ClaimValue""
                 FROM 
                     users AS u
                 LEFT JOIN
-                    user_claims AS uc ON u.Id = uc.UserId
+                    user_claims AS uc ON u.""Id"" = uc.""UserId""
                 WHERE 
-                    u.id = ANY(@ids)";
+                    u.""Id"" = ANY(@ids)";
             var command = new CommandDefinition(sql, new { ids }, cancellationToken: cancellationToken);
             var rows = await connection.QueryAsync<dynamic>(command);
             return rows
@@ -71,14 +71,21 @@ public class UserQueries(IDbConnectionFactory dbConnectionFactory) : IUserQuerie
             EmailConfirmed = firstRow.EmailConfirmed,
             PhoneNumberConfirmed = firstRow.PhoneNumberConfirmed,
             CreatedAt = firstRow.CreatedAt,
-            UpdatedAt = firstRow.UpdatedAt,
-            Claims = rows.Select(r => new UserCliamDto
-            {
-                Id = r.ClaimId,
-                ClaimType = r.ClaimType,
-                ClaimValue = r.ClaimValue
-            }).ToList()
+            UpdatedAt = firstRow.UpdatedAt
         };
+        var userCliams = new List<UserCliamDto>();
+        foreach (var row in rows)
+        {
+            if (row.ClaimId != null && row.ClaimId > 0)
+            {
+                userCliams.Add(new UserCliamDto
+                {
+                    Id = row.ClaimId,
+                    ClaimType = row.ClaimType,
+                    ClaimValue = row.ClaimValue
+                });
+            }
+        }
         return user;
     }
 }

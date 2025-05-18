@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -23,9 +24,9 @@ namespace Deepin.Infrastructure.Migrations.Messages
                     chat_id = table.Column<Guid>(type: "uuid", nullable: false),
                     user_id = table.Column<Guid>(type: "uuid", nullable: false),
                     parent_id = table.Column<Guid>(type: "uuid", nullable: true),
-                    reply_id = table.Column<Guid>(type: "uuid", nullable: true),
+                    reply_to_id = table.Column<Guid>(type: "uuid", nullable: true),
                     created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP AT TIME ZONE 'UTC'"),
-                    modified_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP AT TIME ZONE 'UTC'"),
+                    updated_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP AT TIME ZONE 'UTC'"),
                     text = table.Column<string>(type: "text", nullable: true),
                     mentions = table.Column<string>(type: "jsonb", nullable: true),
                     metadata = table.Column<string>(type: "jsonb", nullable: true),
@@ -53,17 +54,18 @@ namespace Deepin.Infrastructure.Migrations.Messages
                     order = table.Column<int>(type: "integer", nullable: false),
                     thumbnail_file_id = table.Column<Guid>(type: "uuid", nullable: true),
                     metadata = table.Column<string>(type: "jsonb", nullable: true),
-                    chat_id = table.Column<Guid>(type: "uuid", nullable: true)
+                    message_id = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_message_attachments", x => x.id);
                     table.ForeignKey(
-                        name: "FK_message_attachments_messages_chat_id",
-                        column: x => x.chat_id,
+                        name: "FK_message_attachments_messages_message_id",
+                        column: x => x.message_id,
                         principalSchema: "messages",
                         principalTable: "messages",
-                        principalColumn: "id");
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -90,10 +92,10 @@ namespace Deepin.Infrastructure.Migrations.Messages
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_message_attachments_chat_id",
+                name: "IX_message_attachments_message_id",
                 schema: "messages",
                 table: "message_attachments",
-                column: "chat_id");
+                column: "message_id");
 
             migrationBuilder.CreateIndex(
                 name: "IX_message_reactions_message_id_user_id",

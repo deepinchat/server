@@ -6,16 +6,15 @@ using MediatR;
 
 namespace Deepin.Application.Commands.Chats;
 
-public class CreateChatCommandHandler(IMapper mapper, IChatRepository chatRepository, IUserContext userContext) : IRequestHandler<CreateChatCommand, ChatDto>
+public class CreateChatCommandHandler(IMapper mapper, IChatRepository chatRepository) : IRequestHandler<CreateChatCommand, ChatDto>
 {
     private readonly IMapper _mapper = mapper;
     private readonly IChatRepository _chatRepository = chatRepository;
-    private readonly IUserContext _userContext = userContext;
     public async Task<ChatDto> Handle(CreateChatCommand request, CancellationToken cancellationToken)
     {
         var chat = new Chat(
             type: request.Type,
-            createdBy: _userContext.UserId,
+            createdBy: request.OwnerId,
             groupInfo: new GroupInfo(
                 name: request.Name,
                 userName: request.UserName,

@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Deepin.Infrastructure.Migrations.Chats
 {
     [DbContext(typeof(ChatDbContext))]
-    [Migration("20250511084156_InitialCreate")]
+    [Migration("20250518072040_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -134,8 +134,8 @@ namespace Deepin.Infrastructure.Migrations.Chats
                             b1.Property<Guid>("ChatId")
                                 .HasColumnType("uuid");
 
-                            b1.Property<string>("AvatarFileId")
-                                .HasColumnType("text")
+                            b1.Property<Guid?>("AvatarFileId")
+                                .HasColumnType("uuid")
                                 .HasColumnName("avatar_file_id");
 
                             b1.Property<string>("Description")

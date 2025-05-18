@@ -18,7 +18,7 @@ namespace Deepin.Infrastructure.Migrations.Messages
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("messages")
-                .HasAnnotation("ProductVersion", "9.0.2")
+                .HasAnnotation("ProductVersion", "9.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -64,19 +64,13 @@ namespace Deepin.Infrastructure.Migrations.Messages
                         .HasColumnType("jsonb")
                         .HasColumnName("metadata");
 
-                    b.Property<DateTimeOffset>("ModifiedAt")
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("modified_at")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP AT TIME ZONE 'UTC'");
-
                     b.Property<Guid?>("ParentId")
                         .HasColumnType("uuid")
                         .HasColumnName("parent_id");
 
                     b.Property<Guid?>("ReplyToId")
                         .HasColumnType("uuid")
-                        .HasColumnName("reply_id");
+                        .HasColumnName("reply_to_id");
 
                     b.Property<string>("Text")
                         .HasColumnType("text")
@@ -86,6 +80,12 @@ namespace Deepin.Infrastructure.Migrations.Messages
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("type");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP AT TIME ZONE 'UTC'");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid")
@@ -140,12 +140,12 @@ namespace Deepin.Infrastructure.Migrations.Messages
                         .HasColumnType("text")
                         .HasColumnName("type");
 
-                    b.Property<Guid?>("chat_id")
+                    b.Property<Guid?>("message_id")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("chat_id");
+                    b.HasIndex("message_id");
 
                     b.ToTable("message_attachments", "messages");
                 });
@@ -188,7 +188,8 @@ namespace Deepin.Infrastructure.Migrations.Messages
                 {
                     b.HasOne("Deepin.Domain.MessageAggregate.Message", null)
                         .WithMany("Attachments")
-                        .HasForeignKey("chat_id");
+                        .HasForeignKey("message_id")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("Deepin.Domain.MessageAggregate.MessageReaction", b =>

@@ -131,8 +131,8 @@ namespace Deepin.Infrastructure.Migrations.Chats
                             b1.Property<Guid>("ChatId")
                                 .HasColumnType("uuid");
 
-                            b1.Property<string>("AvatarFileId")
-                                .HasColumnType("text")
+                            b1.Property<Guid?>("AvatarFileId")
+                                .HasColumnType("uuid")
                                 .HasColumnName("avatar_file_id");
 
                             b1.Property<string>("Description")

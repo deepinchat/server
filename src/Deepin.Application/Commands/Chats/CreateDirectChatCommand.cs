@@ -3,4 +3,4 @@ using MediatR;
 
 namespace Deepin.Application.Commands.Chats;
 
-public record CreateDirectChatCommand(Guid[] UserIds) : IRequest<ChatDto>;
+public record CreateDirectChatCommand(Guid OwnerId, Guid[] Others) : IRequest<ChatDto>;

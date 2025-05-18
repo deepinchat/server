@@ -35,12 +35,7 @@ namespace Deepin.API.Controllers
             var chats = await chatService.GetChats(_userContext.UserId, cancellationToken);
             return Ok(chats.OrderByDescending(x => x.Chat.UpdatedAt));
         }
-        [HttpPost]
-        public async Task<ActionResult<ChatDto>> Post([FromBody] CreateChatCommand command, CancellationToken cancellationToken = default)
-        {
-            var chat = await _mediator.Send(command, cancellationToken);
-            return CreatedAtAction(nameof(Get), new { id = chat.Id }, chat);
-        }
+
         [HttpPut("{id}")]
         public async Task<ActionResult<ChatDto>> Update(Guid id, [FromBody] UpdateChatCommand command, CancellationToken cancellationToken = default)
         {
@@ -49,10 +44,40 @@ namespace Deepin.API.Controllers
             var chat = await _mediator.Send(command, cancellationToken);
             return Ok(chat);
         }
-        [HttpPost("direct")]
-        public async Task<ActionResult<ChatDto>> CreateDirectChat([FromBody] CreateDirectChatCommand command, CancellationToken cancellationToken = default)
+        [HttpPost("group")]
+        public async Task<ActionResult<ChatDto>> CreateGroup([FromBody] GroupChatRequest request, CancellationToken cancellationToken = default)
         {
-            var chat = await _mediator.Send(command, cancellationToken);
+            var chat = await _mediator.Send(new CreateChatCommand
+            {
+                OwnerId = _userContext.UserId,
+                Name = request.Name,
+                UserName = request.UserName,
+                Description = request.Description,
+                AvatarFileId = request.AvatarFileId,
+                IsPublic = request.IsPublic,
+                Type = ChatType.Group
+            }, cancellationToken);
+            return CreatedAtAction(nameof(Get), new { id = chat.Id }, chat);
+        }
+        [HttpPost("channel")]
+        public async Task<ActionResult<ChatDto>> CreateChannel([FromBody] GroupChatRequest request, CancellationToken cancellationToken = default)
+        {
+            var chat = await _mediator.Send(new CreateChatCommand
+            {
+                OwnerId = _userContext.UserId,
+                Name = request.Name,
+                UserName = request.UserName,
+                Description = request.Description,
+                AvatarFileId = request.AvatarFileId,
+                IsPublic = request.IsPublic,
+                Type = ChatType.Channel
+            }, cancellationToken);
+            return CreatedAtAction(nameof(Get), new { id = chat.Id }, chat);
+        }
+        [HttpPost("direct")]
+        public async Task<ActionResult<ChatDto>> CreateDirectChat([FromBody] Guid[] users, CancellationToken cancellationToken = default)
+        {
+            var chat = await _mediator.Send(new CreateDirectChatCommand(_userContext.UserId, Others: users), cancellationToken);
             return CreatedAtAction(nameof(Get), new { id = chat.Id }, chat);
         }
 

@@ -24,7 +24,7 @@ public class ChatEntityTypeConfiguration : IEntityTypeConfiguration<Chat>
             s.Property(x => x.Name).HasColumnName("name").IsRequired(false);
             s.Property(x => x.UserName).HasColumnName("user_name").IsRequired(false);
             s.Property(x => x.Description).HasColumnName("description").IsRequired(false);
-            s.Property(x => x.AvatarFileId).HasColumnName("avatar_file_id").IsRequired(false);
+            s.Property(x => x.AvatarFileId).HasColumnName("avatar_file_id").HasColumnType("uuid").IsRequired(false);
             s.Property(x => x.IsPublic).HasColumnName("is_public");
         });
 

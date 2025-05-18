@@ -15,6 +15,16 @@ public class NpgsqlDbConnectionFactory(ConnectionStringOptions connectionStrings
 
         return await CreateDbConnectionAsync(connectionStrings.Chat, ChatDbContext.DEFAULT_SCHEMA, cancellationToken);
     }
+
+    public async Task<IDbConnection> CreateMessageDbConnectionAsync(CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrEmpty(connectionStrings.Chat))
+        {
+            throw new ArgumentException($"Message Connection string not found.");
+        }
+
+        return await CreateDbConnectionAsync(connectionStrings.Message, MessageDbContext.DEFAULT_SCHEMA, cancellationToken);
+    }
     public async Task<IDbConnection> CreateStorageDbConnectionAsync(CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(connectionStrings.Storage))
