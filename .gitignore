@@ -365,3 +365,5 @@ src/Deepin.Chatting.API/appsettings.Development.json
 .data/
 .DS_Store
 **/appsettings.Development.json
+src/Deepin.API/appsettings.Development.json
+src/Deepin.IdentityServer/appsettings.Development.json
