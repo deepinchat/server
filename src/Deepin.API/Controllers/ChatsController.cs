@@ -7,33 +7,40 @@ using Deepin.Application.Interfaces;
 using Deepin.Application.Queries;
 using Deepin.Domain.ChatAggregate;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Deepin.API.Controllers
 {
-    [Route("api/v1/[controller]")]
-    [ApiController]
-    [Authorize]
-    public class ChatsController(IMediator mediator, IChatQueries chatQueries, IUserContext userContext, IChatService chatService) : ControllerBase
+    public class ChatsController(IMediator mediator, IChatQueries chatQueries, IUserContext userContext) : ApiControllerBase
     {
         private readonly IMediator _mediator = mediator;
         private readonly IChatQueries _chatQueries = chatQueries;
         private readonly IUserContext _userContext = userContext;
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<ChatSummary>> Get(Guid id, CancellationToken cancellationToken = default)
+        public async Task<ActionResult<ChatDto>> Get(Guid id, CancellationToken cancellationToken = default)
         {
-            var chat = await chatService.GetChat(id, _userContext.UserId, cancellationToken);
-            if (chat == null) return NotFound();
+            var chat = await _mediator.Send(new GetChatCommand(id), cancellationToken);
+            if (chat == null)
+                return NotFound();
             return Ok(chat);
         }
-
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ChatSummary>>> GetChats(CancellationToken cancellationToken = default)
+        public async Task<ActionResult<IEnumerable<ChatDto>>> GetChats(CancellationToken cancellationToken = default)
         {
-            var chats = await chatService.GetChats(_userContext.UserId, cancellationToken);
-            return Ok(chats.OrderByDescending(x => x.Chat.UpdatedAt));
+            var chats = await _mediator.Send(new GetChatsCommand(_userContext.UserId), cancellationToken);
+            return Ok(chats);
+        }
+        [HttpGet("search")]
+        public async Task<ActionResult<IPagedResult<ChatDto>>> SearchChats([FromQuery] SearchChatRequest request, CancellationToken cancellationToken = default)
+        {
+            var result = await _chatQueries.SearchChats(
+                limit: request.Limit,
+                offset: request.Offset,
+                search: request.Search,
+                type: request.Type,
+                cancellationToken: cancellationToken);
+            return Ok(result);
         }
 
         [HttpPut("{id}")]
@@ -45,7 +52,7 @@ namespace Deepin.API.Controllers
             return Ok(chat);
         }
         [HttpPost("group")]
-        public async Task<ActionResult<ChatDto>> CreateGroup([FromBody] GroupChatRequest request, CancellationToken cancellationToken = default)
+        public async Task<ActionResult<ChatDto>> CreateGroup([FromBody] ChatRequest request, CancellationToken cancellationToken = default)
         {
             var chat = await _mediator.Send(new CreateChatCommand
             {
@@ -60,7 +67,7 @@ namespace Deepin.API.Controllers
             return CreatedAtAction(nameof(Get), new { id = chat.Id }, chat);
         }
         [HttpPost("channel")]
-        public async Task<ActionResult<ChatDto>> CreateChannel([FromBody] GroupChatRequest request, CancellationToken cancellationToken = default)
+        public async Task<ActionResult<ChatDto>> CreateChannel([FromBody] ChatRequest request, CancellationToken cancellationToken = default)
         {
             var chat = await _mediator.Send(new CreateChatCommand
             {

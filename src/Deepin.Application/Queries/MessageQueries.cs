@@ -10,17 +10,17 @@ namespace Deepin.Application.Queries;
 
 public interface IMessageQueries
 {
-    Task<MessageDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<MessageDto?> GetMessageAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<IEnumerable<MessageDto>> GetMessagesAsync(Guid[] ids, CancellationToken cancellationToken = default);
+    Task<IPagedResult<MessageDto>> SearchMessagesAsync(int limit, int offset, string? search = null, Guid? chatId = null, Guid? userId = null, CancellationToken cancellationToken = default);
     Task<Guid?> GetLastIdAsync(Guid chatId, CancellationToken cancellationToken = default);
-    Task<IPagedResult<MessageDto>> GetPagedAsync(SearchMessageRequest request, CancellationToken cancellationToken = default);
-    Task<IEnumerable<MessageDto>> BatchGetByIdsAsync(Guid[] ids, CancellationToken cancellationToken = default);
-    Task<IDictionary<Guid, Guid>> GetLastIdsAsync(Guid[] chatIds, CancellationToken cancellationToken = default);
-    Task<int> GetUnreadCountAsync(Guid chatId, DateTimeOffset? lastReadTime = null, CancellationToken cancellationToken = default);
+    Task<IEnumerable<LastMessageDto>> GetLastMessageIdsAsync(Guid[] chatIds, CancellationToken cancellationToken = default);
+    Task<int> GetUnreadCountAsync(Guid chatId, DateTimeOffset? lastReadAt = null, CancellationToken cancellationToken = default);
 }
 
 public class MessageQueries(IDbConnectionFactory dbConnectionFactory) : IMessageQueries
 {
-    public async Task<int> GetUnreadCountAsync(Guid chatId, DateTimeOffset? lastReadTime = null, CancellationToken cancellationToken = default)
+    public async Task<int> GetUnreadCountAsync(Guid chatId, DateTimeOffset? lastReadAt = null, CancellationToken cancellationToken = default)
     {
         using (var connection = await dbConnectionFactory.CreateMessageDbConnectionAsync(cancellationToken))
         {
@@ -31,15 +31,15 @@ public class MessageQueries(IDbConnectionFactory dbConnectionFactory) : IMessage
                     messages
                 WHERE 
                     chat_id = @chatId AND NOT is_deleted";
-            if (lastReadTime.HasValue)
+            if (lastReadAt.HasValue)
             {
-                sql += " AND created_at > @lastReadTime";
+                sql += " AND created_at > @lastReadAt";
             }
-            var command = new CommandDefinition(sql, new { chatId, lastReadTime }, cancellationToken: cancellationToken);
+            var command = new CommandDefinition(sql, new { chatId, lastReadAt }, cancellationToken: cancellationToken);
             return await connection.ExecuteScalarAsync<int>(command);
         }
     }
-    public async Task<IDictionary<Guid, Guid>> GetLastIdsAsync(Guid[] chatIds, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<LastMessageDto>> GetLastMessageIdsAsync(Guid[] chatIds, CancellationToken cancellationToken = default)
     {
         using (var connection = await dbConnectionFactory.CreateMessageDbConnectionAsync(cancellationToken))
         {
@@ -57,12 +57,16 @@ public class MessageQueries(IDbConnectionFactory dbConnectionFactory) : IMessage
             var rows = await connection.QueryAsync<dynamic>(command);
             if (rows is null || rows.Any() == false)
             {
-                return new Dictionary<Guid, Guid>();
+                return [];
             }
-            return rows.ToDictionary(row => (Guid)row.chat_id, row => (Guid)row.id);
+            return rows.Select(row => new LastMessageDto
+            {
+                ChatId = row.chat_id,
+                MessageId = row.id
+            });
         }
     }
-    public async Task<IEnumerable<MessageDto>> BatchGetByIdsAsync(Guid[] ids, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<MessageDto>> GetMessagesAsync(Guid[] ids, CancellationToken cancellationToken = default)
     {
         using (var connection = await dbConnectionFactory.CreateMessageDbConnectionAsync(cancellationToken))
         {
@@ -103,38 +107,17 @@ public class MessageQueries(IDbConnectionFactory dbConnectionFactory) : IMessage
             return rows is null || rows.Any() == false ? [] : rows.ToList().GroupBy(row => row.id).Select(MapMessageDto);
         }
     }
-    public async Task<MessageDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<MessageDto?> GetMessageAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var messages = await BatchGetByIdsAsync([id], cancellationToken);
-        return messages.FirstOrDefault();
+        var messages = await GetMessagesAsync([id], cancellationToken);
+        return messages?.FirstOrDefault();
     }
 
-    public async Task<IPagedResult<MessageDto>> GetPagedAsync(SearchMessageRequest request, CancellationToken cancellationToken = default)
+    public async Task<IPagedResult<MessageDto>> SearchMessagesAsync(int limit, int offset, string? search = null, Guid? chatId = null, Guid? userId = null, CancellationToken cancellationToken = default)
     {
         using (var connection = await dbConnectionFactory.CreateMessageDbConnectionAsync(cancellationToken))
         {
-            var condationSql = " WHERE NOT m.is_deleted";
-            if (request.ChatId.HasValue)
-            {
-                condationSql += " AND m.chat_id = @chatId";
-            }
-            if (request.SenderId.HasValue)
-            {
-                condationSql += " AND m.user_id = @senderId";
-            }
-            if (!string.IsNullOrEmpty(request.Search))
-            {
-                condationSql += " AND m.text ILIKE '%' || @search || '%'";
-            }
-            var countSql = $@"
-                SELECT COUNT(*) FROM messages m
-                {condationSql}";
-            var countCommand = new CommandDefinition(countSql, new { chatId = request.ChatId, senderId = request.SenderId, search = request.Search }, cancellationToken: cancellationToken);
-            var count = await connection.ExecuteScalarAsync<int>(countCommand);
-            if (count == 0)
-            {
-                return new PagedResult<MessageDto>();
-            }
+            var countSql = "SELECT COUNT(*) FROM messages m WHERE NOT m.is_deleted";
             var querySql = $@"
                 SELECT
                     m.id,
@@ -163,20 +146,37 @@ public class MessageQueries(IDbConnectionFactory dbConnectionFactory) : IMessage
                     ma.metadata AS attachment_metadata
                 FROM messages m
                 LEFT JOIN message_attachments ma ON m.id = ma.message_id
-                {condationSql}
-                ORDER BY m.created_at DESC
-                OFFSET @offset LIMIT @limit";
-            var command = new CommandDefinition(querySql, new
+                WHERE NOT m.is_deleted";
+
+            var condations = new List<string>();
+            if (chatId.HasValue)
             {
-                chatId = request.ChatId,
-                senderId = request.SenderId,
-                search = request.Search,
-                offset = request.Offset,
-                limit = request.Limit
-            }, cancellationToken: cancellationToken);
+                condations.Add("m.chat_id = @chatId");
+            }
+            if (userId.HasValue)
+            {
+                condations.Add("m.user_id = @userId");
+            }
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                condations.Add("m.text ILIKE @search");
+            }
+            if (condations.Any())
+            {
+                countSql += " AND " + string.Join(" AND ", condations);
+                querySql += " AND " + string.Join(" AND ", condations);
+            }
+            var countCommand = new CommandDefinition(countSql, new { chatId, userId, search }, cancellationToken: cancellationToken);
+            var count = await connection.ExecuteScalarAsync<int>(countCommand);
+            if (count == 0)
+            {
+                return new PagedResult<MessageDto>();
+            }
+            querySql += " ORDER BY m.created_at DESC LIMIT @limit OFFSET @offset";
+            var command = new CommandDefinition(querySql, new { limit, offset, chatId, userId, search = $"%{search}%" }, cancellationToken: cancellationToken);
             var rows = await connection.QueryAsync<dynamic>(command);
             var messages = rows.GroupBy(row => row.id).Select(MapMessageDto);
-            return new PagedResult<MessageDto>(messages, request.Offset, request.Limit, count);
+            return new PagedResult<MessageDto>(messages, offset, limit, count);
         }
     }
 
@@ -211,7 +211,7 @@ public class MessageQueries(IDbConnectionFactory dbConnectionFactory) : IMessage
             var attachment = new MessageAttachmentDto
             {
                 Id = row.attachment_id,
-                Type = Enum.Parse<MessageAttachmentType>(row.attachment_type, true),
+                Type = Enum.Parse<AttachmentType>(row.attachment_type, true),
                 FileId = row.attachment_file_id,
                 FileName = row.attachment_file_name,
                 FileSize = row.attachment_file_size,
@@ -244,8 +244,4 @@ public class MessageQueries(IDbConnectionFactory dbConnectionFactory) : IMessage
             return await connection.ExecuteScalarAsync<Guid?>(command);
         }
     }
-}
-
-internal struct MessageAttachmentType
-{
 }

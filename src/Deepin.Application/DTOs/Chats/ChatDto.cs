@@ -10,5 +10,4 @@ public class ChatDto
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
     public ChatGroupInfoDto? GroupInfo { get; set; }
-    public ChatReadStatusDto? ReadStatus { get; set; }
 }

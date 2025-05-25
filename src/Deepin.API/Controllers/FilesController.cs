@@ -7,11 +7,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Deepin.API.Controllers
-{
-    [Route("api/[controller]")]
-    [ApiController]
-    [Authorize]
-    public class FilesController(IMediator mediator, IUserContext userContext, IFileQueries fileQueries) : ControllerBase
+{ 
+    public class FilesController(IMediator mediator, IUserContext userContext, IFileQueries fileQueries) : ApiControllerBase
     {
         [HttpGet("{id:guid}")]
         public async Task<IActionResult> Get(Guid id, CancellationToken cancellationToken)

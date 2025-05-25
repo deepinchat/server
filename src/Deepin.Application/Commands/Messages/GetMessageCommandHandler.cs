@@ -18,7 +18,7 @@ public class GetMessageCommandHandler(
             CacheKeys.GetMessageByIdCacheKey(request.Id),
             async () =>
             {
-                var message = await messageQueries.GetByIdAsync(request.Id, cancellationToken) ?? throw new EntityNotFoundException(
+                var message = await messageQueries.GetMessageAsync(request.Id, cancellationToken) ?? throw new EntityNotFoundException(
                         nameof(Message),
                         request.Id);
                 return message;

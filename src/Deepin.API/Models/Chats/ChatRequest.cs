@@ -1,6 +1,6 @@
 namespace Deepin.API.Models.Chats;
 
-public class GroupChatRequest
+public class ChatRequest
 {
     public required string Name { get; set; }
     public string? UserName { get; set; }

@@ -15,14 +15,9 @@ public static class ServiceCollectionExtension
             .AddDefaultCorsPolicy()
             .AddDefaultHealthChecks()
             .AddDefaultAuthentication(builder.Configuration)
-            .AddDefaultOpenApi(builder.Configuration)
-            .AddApiServices();
+            .AddDefaultOpenApi(builder.Configuration);
 
         return builder;
-    }
-    private static IServiceCollection AddApiServices(this IServiceCollection services)
-    {
-        return services.AddScoped<IChatService, ChatService>();
     }
     public static IServiceCollection AddDefaultUserContexts(this IServiceCollection services)
     {
