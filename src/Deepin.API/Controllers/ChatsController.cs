@@ -51,8 +51,8 @@ namespace Deepin.API.Controllers
             var chat = await _mediator.Send(command, cancellationToken);
             return Ok(chat);
         }
-        [HttpPost("group")]
-        public async Task<ActionResult<ChatDto>> CreateGroup([FromBody] ChatRequest request, CancellationToken cancellationToken = default)
+        [HttpPost]
+        public async Task<ActionResult<ChatDto>> Create([FromBody] ChatRequest request, CancellationToken cancellationToken = default)
         {
             var chat = await _mediator.Send(new CreateChatCommand
             {
@@ -62,22 +62,7 @@ namespace Deepin.API.Controllers
                 Description = request.Description,
                 AvatarFileId = request.AvatarFileId,
                 IsPublic = request.IsPublic,
-                Type = ChatType.Group
-            }, cancellationToken);
-            return CreatedAtAction(nameof(Get), new { id = chat.Id }, chat);
-        }
-        [HttpPost("channel")]
-        public async Task<ActionResult<ChatDto>> CreateChannel([FromBody] ChatRequest request, CancellationToken cancellationToken = default)
-        {
-            var chat = await _mediator.Send(new CreateChatCommand
-            {
-                OwnerId = _userContext.UserId,
-                Name = request.Name,
-                UserName = request.UserName,
-                Description = request.Description,
-                AvatarFileId = request.AvatarFileId,
-                IsPublic = request.IsPublic,
-                Type = ChatType.Channel
+                Type = request.Type
             }, cancellationToken);
             return CreatedAtAction(nameof(Get), new { id = chat.Id }, chat);
         }
