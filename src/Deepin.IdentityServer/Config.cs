@@ -42,32 +42,6 @@ internal static class Config
             },
             new Client
             {
-                ClientId = "deepinweb",
-                ClientName = "Deepin Web Client",
-                AllowedGrantTypes = GrantTypes.Code,
-                AllowAccessTokensViaBrowser = true,
-                RequirePkce = true,
-                RequireClientSecret = false,
-                RequireConsent = false,
-                RedirectUris = {"http://localhost:4200/callback/signin","https://deepin.chat/callback/signin","https://deepin.me/callback/signin"},
-                PostLogoutRedirectUris = {"http://localhost:4200/callback/signout","https://deepin.chat/callback/signout","https://deepin.me/callback/signout"},
-                AllowedCorsOrigins = {"http://localhost:4200" , "https://deepin.chat","https://deepin.me"},
-                AllowedScopes =
-                [
-                    IdentityServerConstants.StandardScopes.OpenId,
-                    IdentityServerConstants.StandardScopes.Profile,
-                    "upload",
-                    "download",
-                    "chat",
-                    "message",
-                    "presence",
-                    "user"
-                ],
-                AccessTokenLifetime = 3600,
-                IdentityTokenLifetime = 1800,
-            },
-            new Client
-            {
                 ClientId = "deepinswaggerui",
                 ClientName = "Deepin Swagger UI",
                 AllowedGrantTypes = GrantTypes.Implicit,
@@ -83,6 +57,31 @@ internal static class Config
                     .. ApiScopes.Select(s => s.Name)
                 ],
                 RequireConsent = false,
-            }
+            },
+            new Client
+            {
+                ClientId = "deepin.web.client",
+                ClientName = "Deepin Web Client",
+                ClientSecrets = {new Secret("deepin.web.client.secret".Sha256())},
+                AllowedGrantTypes = GrantTypes.Code,
+                AllowOfflineAccess = true,
+                RequirePkce = false,
+                RequireClientSecret = true,
+                RequireConsent = false,
+                RedirectUris = {"https://localhost:4443/signin-oidc","http://localhost:4444/signin-oidc","http://localhost:4200/signin-oidc","https://deepin.chat/signin-oidc","https://deepin.me/signin-oidc"},
+                PostLogoutRedirectUris = {"http://localhost:4200/signout-callback-oidc","https://deepin.chat/signout-callback-oidc","https://deepin.me/signout-callback-oidc"},
+                AllowedCorsOrigins = {"https://localhost:4443","http://localhost:4444","http://localhost:4200" , "https://deepin.chat","https://deepin.me"},
+                AllowedScopes =
+                [
+                    IdentityServerConstants.StandardScopes.OpenId,
+                    IdentityServerConstants.StandardScopes.Profile,
+                    "upload",
+                    "download",
+                    "chat",
+                    "message",
+                    "presence",
+                    "user"
+                ]
+            },
         };
 }
