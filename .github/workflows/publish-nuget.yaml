@@ -4,8 +4,10 @@ on:
   push:
     branches:
       - master
+      - develop
+      - release/*
     paths:
-      - "**/*.csproj"
+      - src/Deepin.SDK/Deepin.SDK.csproj"
 
 jobs:
   build:
