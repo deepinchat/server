@@ -2,9 +2,9 @@ using Deepin.Domain.ChatAggregate;
 
 namespace Deepin.API.Models.Chats;
 
-public class ChatRequest
+public class CreateChatRequest
 {
-    public required string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
     public string? UserName { get; set; }
     public string? Description { get; set; }
     public Guid? AvatarFileId { get; set; }

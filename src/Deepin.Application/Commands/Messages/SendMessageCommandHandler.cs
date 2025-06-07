@@ -21,7 +21,7 @@ public class SendMessageCommandHandler(
             type: request.Type,
             chatId: request.ChatId,
             userId: userContext.UserId,
-            text: request.Text,
+            text: request.Content,
             parentId: request.ParentId,
             replyToId: request.ReplyToId,
             mentions: request.Mentions is null ? null : JsonConvert.SerializeObject(request.Mentions),

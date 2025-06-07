@@ -4,6 +4,7 @@ namespace Deepin.Application.DTOs.Chats;
 
 public class ChatMemberDto
 {
+    public Guid Id { get; set; }
     public Guid UserId { get; set; }
     public string? DisplayName { get; set; }
     public DateTimeOffset JoinedAt { get; set; }

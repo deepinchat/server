@@ -5,36 +5,28 @@ namespace Deepin.SDK.Models;
 /// </summary>
 public class FileInfoModel
 {
-    public int Id { get; set; }
-    public string FileName { get; set; } = string.Empty;
+    public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string StorageKey { get; set; } = string.Empty;
     public string ContentType { get; set; } = string.Empty;
-    public long Size { get; set; }
-    public string Path { get; set; } = string.Empty;
-    public int UploadedById { get; set; }
-    public DateTime UploadedAt { get; set; }
-    public User? UploadedBy { get; set; }
+    public long Length { get; set; }
+    public string? ContainerName { get; set; }
+    public string Hash { get; set; } = string.Empty;
+    public string Checksum { get; set; } = string.Empty;
+    public string Format { get; set; } = string.Empty;
+    public Guid CreatedBy { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; }
+    public StorageProvider Provider { get; set; }
 }
-
-/// <summary>
-/// Represents a file attachment
-/// </summary>
-public class FileAttachment
+public enum StorageProvider
 {
-    public int Id { get; set; }
-    public int FileId { get; set; }
-    public int MessageId { get; set; }
-    public FileInfoModel? File { get; set; }
-}
-
-/// <summary>
-/// Response model for file upload
-/// </summary>
-public class FileUploadResponse
-{
-    public int Id { get; set; }
-    public string FileName { get; set; } = string.Empty;
-    public string ContentType { get; set; } = string.Empty;
-    public long Size { get; set; }
+    Local,
+    AzureBlob,
+    AwsS3,
+    GoogleCloudStorage,
+    Aliyun,
+    TencentCloud,
 }
 
 /// <summary>

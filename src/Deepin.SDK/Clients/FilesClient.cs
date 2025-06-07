@@ -10,10 +10,9 @@ namespace Deepin.SDK.Clients;
 /// </summary>
 public interface IFilesClient
 {
-    Task<FileInfoModel?> GetFileInfoAsync(int id, CancellationToken cancellationToken = default);
-    Task<Stream?> DownloadFileAsync(int id, CancellationToken cancellationToken = default);
-    Task<FileUploadResponse?> UploadFileAsync(FileUploadRequest request, CancellationToken cancellationToken = default);
-    Task<FileUploadResponse?> UploadFileAsync(Stream fileStream, string fileName, string contentType, CancellationToken cancellationToken = default);
+    Task<Stream?> DownloadFileAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<FileInfoModel?> GetFileInfoAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<FileInfoModel?> UploadFileAsync(FileUploadRequest request, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -29,21 +28,21 @@ public class FilesClient : BaseClient, IFilesClient
     /// <summary>
     /// Gets file information by ID
     /// </summary>
-    public async Task<FileInfoModel?> GetFileInfoAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<FileInfoModel?> GetFileInfoAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await GetAsync<FileInfoModel>($"api/files/{id}", cancellationToken);
+        return await GetAsync<FileInfoModel>($"api/v1/files/{id}", cancellationToken);
     }
 
     /// <summary>
     /// Downloads a file by ID
     /// </summary>
-    public async Task<Stream?> DownloadFileAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<Stream?> DownloadFileAsync(Guid id, CancellationToken cancellationToken = default)
     {
         try
         {
             Logger.LogDebug("Downloading file with ID {FileId}", id);
-            var response = await HttpClient.GetAsync($"api/files/download/{id}", cancellationToken);
-            
+            var response = await HttpClient.GetAsync($"api/v1/files/download/{id}", cancellationToken);
+
             if (!response.IsSuccessStatusCode)
             {
                 Logger.LogWarning("File download failed with status {StatusCode}", response.StatusCode);
@@ -60,44 +59,36 @@ public class FilesClient : BaseClient, IFilesClient
     }
 
     /// <summary>
-    /// Uploads a file using a FileUploadRequest
-    /// </summary>
-    public async Task<FileUploadResponse?> UploadFileAsync(FileUploadRequest request, CancellationToken cancellationToken = default)
-    {
-        return await UploadFileAsync(request.FileStream, request.FileName, request.ContentType, cancellationToken);
-    }
-
-    /// <summary>
     /// Uploads a file with specified parameters
     /// </summary>
-    public async Task<FileUploadResponse?> UploadFileAsync(Stream fileStream, string fileName, string contentType, CancellationToken cancellationToken = default)
+    public async Task<FileInfoModel?> UploadFileAsync(FileUploadRequest request, CancellationToken cancellationToken = default)
     {
         try
         {
-            Logger.LogDebug("Uploading file {FileName}", fileName);
+            Logger.LogDebug("Uploading file {FileName}", request.FileName);
 
             using var content = new MultipartFormDataContent();
-            using var streamContent = new StreamContent(fileStream);
-            
-            streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(contentType);
-            content.Add(streamContent, "file", fileName);
+            using var streamContent = new StreamContent(request.FileStream);
 
-            var response = await HttpClient.PostAsync("api/files", content, cancellationToken);
-            
+            streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(request.ContentType);
+            content.Add(streamContent, "file", request.FileName);
+
+            var response = await HttpClient.PostAsync("api/v1/files", content, cancellationToken);
+
             if (!response.IsSuccessStatusCode)
             {
                 var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
-                Logger.LogWarning("File upload failed with status {StatusCode}: {Content}", 
+                Logger.LogWarning("File upload failed with status {StatusCode}: {Content}",
                     response.StatusCode, errorContent);
                 throw new HttpRequestException($"File upload failed with status {response.StatusCode}", null, response.StatusCode);
             }
 
             var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            return System.Text.Json.JsonSerializer.Deserialize<FileUploadResponse>(responseContent, JsonOptions);
+            return System.Text.Json.JsonSerializer.Deserialize<FileInfoModel>(responseContent, JsonOptions);
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error occurred while uploading file {FileName}", fileName);
+            Logger.LogError(ex, "Error occurred while uploading file {FileName}", request.FileName);
             throw;
         }
     }

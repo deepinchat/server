@@ -3,7 +3,6 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Deepin.SDK.Configuration;
-using Deepin.SDK.Models;
 
 namespace Deepin.SDK.Clients;
 

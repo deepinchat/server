@@ -22,9 +22,9 @@ namespace Deepin.API.Controllers
             }
             return Ok(user);
         }
-        [HttpGet("batch")]
+        [HttpPost("batch")]
         [ProducesResponseType(typeof(IEnumerable<UserDto>), StatusCodes.Status200OK)]
-        public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers([FromQuery] Guid[] ids, CancellationToken cancellationToken = default)
+        public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers([FromBody] Guid[] ids, CancellationToken cancellationToken = default)
         {
             if (ids == null || !ids.Any())
             {

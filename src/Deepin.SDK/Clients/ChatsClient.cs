@@ -10,19 +10,19 @@ namespace Deepin.SDK.Clients;
 /// </summary>
 public interface IChatsClient
 {
-    Task<Chat?> GetChatAsync(int id, CancellationToken cancellationToken = default);
-    Task<List<Chat>> GetChatsAsync(CancellationToken cancellationToken = default);
-    Task<List<Chat>> SearchChatsAsync(string query, int skip = 0, int take = 20, CancellationToken cancellationToken = default);
     Task<Chat?> CreateChatAsync(CreateChatRequest request, CancellationToken cancellationToken = default);
-    Task<Chat?> UpdateChatAsync(int id, UpdateChatRequest request, CancellationToken cancellationToken = default);
     Task<Chat?> CreateDirectChatAsync(CreateDirectChatRequest request, CancellationToken cancellationToken = default);
-    Task<bool> DeleteChatAsync(int id, CancellationToken cancellationToken = default);
-    Task<bool> JoinChatAsync(int id, CancellationToken cancellationToken = default);
-    Task<bool> LeaveChatAsync(int id, CancellationToken cancellationToken = default);
-    Task<List<ChatMember>> GetChatMembersAsync(int id, CancellationToken cancellationToken = default);
+    Task<bool> DeleteChatAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<Chat?> GetChatAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<IPagedResult<ChatMember>> GetChatMembersAsync(Guid id, int offset = 0, int limit = 20, CancellationToken cancellationToken = default);
+    Task<List<Chat>> GetChatsAsync(CancellationToken cancellationToken = default);
+    Task<ReadStatus?> GetReadStatusAsync(Guid id, CancellationToken cancellationToken = default);
     Task<List<ReadStatus>> GetReadStatusesAsync(CancellationToken cancellationToken = default);
-    Task<ReadStatus?> GetReadStatusAsync(int id, CancellationToken cancellationToken = default);
-    Task<bool> UpdateReadStatusAsync(int id, UpdateReadStatusRequest request, CancellationToken cancellationToken = default);
+    Task<bool> JoinChatAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<bool> LeaveChatAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<IPagedResult<Chat>> SearchChatsAsync(SearchChatRequest request, CancellationToken cancellationToken = default);
+    Task<Chat?> UpdateChatAsync(Guid id, UpdateChatRequest request, CancellationToken cancellationToken = default);
+    Task<bool> UpdateReadStatusAsync(Guid id, UpdateReadStatusRequest request, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -35,48 +35,49 @@ public class ChatsClient : BaseClient, IChatsClient
     {
     }
 
-    public async Task<Chat?> GetChatAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<Chat?> GetChatAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await GetAsync<Chat>($"api/chats/{id}", cancellationToken);
+        return await GetAsync<Chat>($"api/v1/chats/{id}", cancellationToken);
     }
 
     public async Task<List<Chat>> GetChatsAsync(CancellationToken cancellationToken = default)
     {
-        return await GetAsync<List<Chat>>("api/chats", cancellationToken) ?? new List<Chat>();
+        return await GetAsync<List<Chat>>("api/v1/chats", cancellationToken) ?? new List<Chat>();
     }
 
-    public async Task<List<Chat>> SearchChatsAsync(string query, int skip = 0, int take = 20, CancellationToken cancellationToken = default)
+    public async Task<IPagedResult<Chat>> SearchChatsAsync(SearchChatRequest request, CancellationToken cancellationToken = default)
     {
         var queryParams = BuildQueryString(new Dictionary<string, object?>
         {
-            ["query"] = query,
-            ["skip"] = skip,
-            ["take"] = take
+            ["search"] = request.Search,
+            ["type"] = request.Type?.ToString(),
+            ["offset"] = request.Offset,
+            ["limit"] = request.Limit
         });
 
-        return await GetAsync<List<Chat>>($"api/chats/search{queryParams}", cancellationToken) ?? new List<Chat>();
+        return await GetAsync<IPagedResult<Chat>>($"api/v1/chats/search{queryParams}", cancellationToken) ?? new PagedResult<Chat>();
     }
 
     public async Task<Chat?> CreateChatAsync(CreateChatRequest request, CancellationToken cancellationToken = default)
     {
-        return await PostAsync<Chat>("api/chats", request, cancellationToken);
+        return await PostAsync<Chat>("api/v1/chats", request, cancellationToken);
     }
 
-    public async Task<Chat?> UpdateChatAsync(int id, UpdateChatRequest request, CancellationToken cancellationToken = default)
+    public async Task<Chat?> UpdateChatAsync(Guid id, UpdateChatRequest request, CancellationToken cancellationToken = default)
     {
-        return await PutAsync<Chat>($"api/chats/{id}", request, cancellationToken);
+        return await PutAsync<Chat>($"api/v1/chats/{id}", request, cancellationToken);
     }
 
     public async Task<Chat?> CreateDirectChatAsync(CreateDirectChatRequest request, CancellationToken cancellationToken = default)
     {
-        return await PostAsync<Chat>("api/chats/direct", request, cancellationToken);
+        return await PostAsync<Chat>("api/v1/chats/direct", request.UserIds, cancellationToken);
     }
 
-    public async Task<bool> DeleteChatAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<bool> DeleteChatAsync(Guid id, CancellationToken cancellationToken = default)
     {
         try
         {
-            await DeleteAsync<object>($"api/chats/{id}", cancellationToken);
+            await DeleteAsync<object>($"api/v1/chats/{id}", cancellationToken);
             return true;
         }
         catch
@@ -85,11 +86,11 @@ public class ChatsClient : BaseClient, IChatsClient
         }
     }
 
-    public async Task<bool> JoinChatAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<bool> JoinChatAsync(Guid id, CancellationToken cancellationToken = default)
     {
         try
         {
-            await PostAsync<object>($"api/chats/{id}/join", null, cancellationToken);
+            await PostAsync<object>($"api/v1/chats/{id}/join", null, cancellationToken);
             return true;
         }
         catch
@@ -98,11 +99,11 @@ public class ChatsClient : BaseClient, IChatsClient
         }
     }
 
-    public async Task<bool> LeaveChatAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<bool> LeaveChatAsync(Guid id, CancellationToken cancellationToken = default)
     {
         try
         {
-            await PostAsync<object>($"api/chats/{id}/leave", null, cancellationToken);
+            await PostAsync<object>($"api/v1/chats/{id}/leave", null, cancellationToken);
             return true;
         }
         catch
@@ -111,26 +112,26 @@ public class ChatsClient : BaseClient, IChatsClient
         }
     }
 
-    public async Task<List<ChatMember>> GetChatMembersAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<IPagedResult<ChatMember>> GetChatMembersAsync(Guid id, int offset = 0, int limit = 20, CancellationToken cancellationToken = default)
     {
-        return await GetAsync<List<ChatMember>>($"api/chats/{id}/members", cancellationToken) ?? new List<ChatMember>();
+        return await GetAsync<IPagedResult<ChatMember>>($"api/v1/chats/{id}/members?offset={offset}&limit={limit}", cancellationToken) ?? new PagedResult<ChatMember>();
     }
 
     public async Task<List<ReadStatus>> GetReadStatusesAsync(CancellationToken cancellationToken = default)
     {
-        return await GetAsync<List<ReadStatus>>("api/chats/read-statuses", cancellationToken) ?? new List<ReadStatus>();
+        return await GetAsync<List<ReadStatus>>("api/v1/chats/read-statuses", cancellationToken) ?? new List<ReadStatus>();
     }
 
-    public async Task<ReadStatus?> GetReadStatusAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<ReadStatus?> GetReadStatusAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await GetAsync<ReadStatus>($"api/chats/{id}/read-status", cancellationToken);
+        return await GetAsync<ReadStatus>($"api/v1/chats/{id}/read-status", cancellationToken);
     }
 
-    public async Task<bool> UpdateReadStatusAsync(int id, UpdateReadStatusRequest request, CancellationToken cancellationToken = default)
+    public async Task<bool> UpdateReadStatusAsync(Guid id, UpdateReadStatusRequest request, CancellationToken cancellationToken = default)
     {
         try
         {
-            await PostAsync<object>($"api/chats/{id}/read-status", request, cancellationToken);
+            await PostAsync<object>($"api/v1/chats/{id}/read-status", request, cancellationToken);
             return true;
         }
         catch

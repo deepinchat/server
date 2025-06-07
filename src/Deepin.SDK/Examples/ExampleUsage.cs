@@ -49,7 +49,7 @@ public class ExampleUsage
             if (chats.Count > 0)
             {
                 var firstChat = chats.First();
-                Console.WriteLine($"Sending message to chat: {firstChat.Name}");
+                Console.WriteLine($"Sending message to chat: {firstChat.GroupInfo?.Name}");
                 
                 var message = await apiClient.Messages.SendMessageAsync(new SendMessageRequest
                 {
@@ -66,7 +66,12 @@ public class ExampleUsage
 
             // Example: Search users
             Console.WriteLine("Searching for users...");
-            var users = await apiClient.Users.SearchUsersAsync("john", skip: 0, take: 10);
+            var users = await apiClient.Users.SearchUsersAsync(new SearchUsersRequest
+            {
+                Query = "john",
+                Limit = 10,
+                Offset = 0
+            });
             Console.WriteLine($"Found {users.Count} users matching 'john'");
 
             // Example: Upload a file (commented out as it requires actual file)
@@ -110,7 +115,7 @@ public class IndividualClientExample
         _logger = logger;
     }
 
-    public async Task SendWelcomeMessage(int chatId, string userName)
+    public async Task SendWelcomeMessage(Guid chatId, string userName)
     {
         try
         {
@@ -121,7 +126,7 @@ public class IndividualClientExample
                 return;
             }
 
-            var welcomeMessage = $"Welcome to {chat.Name}, {userName}!";
+            var welcomeMessage = $"Welcome to {chat.GroupInfo?.Name}, {userName}!";
             
             await _messagesClient.SendMessageAsync(new SendMessageRequest
             {
@@ -130,7 +135,7 @@ public class IndividualClientExample
                 Type = MessageType.Text
             });
 
-            _logger.LogInformation("Welcome message sent to {ChatName}", chat.Name);
+            _logger.LogInformation("Welcome message sent to {ChatName}", chat.GroupInfo?.Name);
         }
         catch (Exception ex)
         {

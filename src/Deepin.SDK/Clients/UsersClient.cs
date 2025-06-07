@@ -10,11 +10,9 @@ namespace Deepin.SDK.Clients;
 /// </summary>
 public interface IUsersClient
 {
-    Task<User?> GetUserAsync(int id, CancellationToken cancellationToken = default);
-    Task<List<User>> GetUsersByIdsAsync(GetUsersByIdsRequest request, CancellationToken cancellationToken = default);
-    Task<List<User>> GetUsersByIdsAsync(List<int> userIds, CancellationToken cancellationToken = default);
+    Task<User?> GetUserAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<List<User>> GetUsersByIdsAsync(Guid[] ids, CancellationToken cancellationToken = default);
     Task<List<User>> SearchUsersAsync(SearchUsersRequest request, CancellationToken cancellationToken = default);
-    Task<List<User>> SearchUsersAsync(string query, int skip = 0, int take = 20, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -27,42 +25,29 @@ public class UsersClient : BaseClient, IUsersClient
     {
     }
 
-    public async Task<User?> GetUserAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<User?> GetUserAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await GetAsync<User>($"api/user/{id}", cancellationToken);
+        return await GetAsync<User>($"api/v1/user/{id}", cancellationToken);
     }
 
-    public async Task<List<User>> GetUsersByIdsAsync(GetUsersByIdsRequest request, CancellationToken cancellationToken = default)
+    public async Task<List<User>> GetUsersByIdsAsync(Guid[] ids, CancellationToken cancellationToken = default)
     {
-        return await PostAsync<List<User>>("api/user/batch", request, cancellationToken) ?? new List<User>();
-    }
-
-    public async Task<List<User>> GetUsersByIdsAsync(List<int> userIds, CancellationToken cancellationToken = default)
-    {
-        var request = new GetUsersByIdsRequest { UserIds = userIds };
-        return await GetUsersByIdsAsync(request, cancellationToken);
+        return await PostAsync<List<User>>("api/v1/user/batch", ids, cancellationToken) ?? new List<User>();
     }
 
     public async Task<List<User>> SearchUsersAsync(SearchUsersRequest request, CancellationToken cancellationToken = default)
     {
-        var queryParams = BuildQueryString(new Dictionary<string, object?>
+        var query = new Dictionary<string, object?>
         {
-            ["query"] = request.Query,
-            ["skip"] = request.Skip,
-            ["take"] = request.Take
-        });
-
-        return await GetAsync<List<User>>($"api/user/search{queryParams}", cancellationToken) ?? new List<User>();
-    }
-
-    public async Task<List<User>> SearchUsersAsync(string query, int skip = 0, int take = 20, CancellationToken cancellationToken = default)
-    {
-        var request = new SearchUsersRequest 
-        { 
-            Query = query, 
-            Skip = skip, 
-            Take = take 
+            ["offset"] = request.Offset,
+            ["limit"] = request.Limit
         };
-        return await SearchUsersAsync(request, cancellationToken);
+        if (!string.IsNullOrEmpty(request.Query))
+        {
+            query["search"] = request.Query;
+        }
+        var queryParams = BuildQueryString(query);
+
+        return await GetAsync<List<User>>($"api/v1/user/search{queryParams}", cancellationToken) ?? new List<User>();
     }
 }

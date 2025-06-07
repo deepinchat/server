@@ -5,16 +5,21 @@ namespace Deepin.SDK.Models;
 /// </summary>
 public class Chat
 {
-    public int Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string? Description { get; set; }
+    public Guid Id { get; set; }
     public ChatType Type { get; set; }
-    public int CreatedById { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime UpdatedAt { get; set; }
-    public List<ChatMember>? Members { get; set; }
-    public Message? LastMessage { get; set; }
-    public int UnreadCount { get; set; }
+    public Guid CreatedBy { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; }
+    public ChatGroupInfo? GroupInfo { get; set; }
+}
+public class ChatGroupInfo
+{
+    public string Name { get; set; } = string.Empty;
+    public string? UserName { get; set; }
+    public string? Description { get; set; }
+    public Guid? AvatarFileId { get; set; }
+    public bool IsPublic { get; set; }
+
 }
 
 /// <summary>
@@ -22,8 +27,8 @@ public class Chat
 /// </summary>
 public enum ChatType
 {
-    Group = 0,
-    Direct = 1
+    Group,
+    Direct
 }
 
 /// <summary>
@@ -31,12 +36,12 @@ public enum ChatType
 /// </summary>
 public class ChatMember
 {
-    public int Id { get; set; }
-    public int ChatId { get; set; }
-    public int UserId { get; set; }
+    public Guid Id { get; set; }
+    public Guid UserId { get; set; }
+    public string? DisplayName { get; set; }
+    public DateTimeOffset JoinedAt { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; }
     public ChatMemberRole Role { get; set; }
-    public DateTime JoinedAt { get; set; }
-    public User? User { get; set; }
 }
 
 /// <summary>
@@ -44,9 +49,9 @@ public class ChatMember
 /// </summary>
 public enum ChatMemberRole
 {
-    Member = 0,
-    Admin = 1,
-    Owner = 2
+    Member,
+    Admin,
+    Owner
 }
 
 /// <summary>
@@ -55,9 +60,11 @@ public enum ChatMemberRole
 public class CreateChatRequest
 {
     public string Name { get; set; } = string.Empty;
+    public string? UserName { get; set; }
     public string? Description { get; set; }
+    public Guid? AvatarFileId { get; set; }
+    public bool IsPublic { get; set; }
     public ChatType Type { get; set; }
-    public List<int>? MemberIds { get; set; }
 }
 
 /// <summary>
@@ -65,8 +72,12 @@ public class CreateChatRequest
 /// </summary>
 public class UpdateChatRequest
 {
-    public string? Name { get; set; }
+    public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string? UserName { get; set; }
     public string? Description { get; set; }
+    public Guid? AvatarFileId { get; set; }
+    public bool IsPublic { get; set; }
 }
 
 /// <summary>
@@ -74,25 +85,26 @@ public class UpdateChatRequest
 /// </summary>
 public class CreateDirectChatRequest
 {
-    public int UserId { get; set; }
+    public Guid[] UserIds { get; set; } = [];
 }
-
-/// <summary>
-/// Request model for joining a chat
-/// </summary>
-public class JoinChatRequest
+// <summary>
+// Represents a request to search for chats
+// </summary>
+public class SearchChatRequest
 {
-    public int ChatId { get; set; }
+    public int Limit { get; set; } = 20;
+    public int Offset { get; set; } = 0;
+    public string? Search { get; set; }
+    public ChatType? Type { get; set; }
 }
-
 /// <summary>
 /// Represents read status for a chat
 /// </summary>
 public class ReadStatus
 {
-    public int ChatId { get; set; }
-    public int UserId { get; set; }
-    public int? LastReadMessageId { get; set; }
+    public Guid ChatId { get; set; }
+    public Guid UserId { get; set; }
+    public Guid? LastReadMessageId { get; set; }
     public DateTime? LastReadAt { get; set; }
 }
 
@@ -101,5 +113,5 @@ public class ReadStatus
 /// </summary>
 public class UpdateReadStatusRequest
 {
-    public int MessageId { get; set; }
+    public Guid MessageId { get; set; }
 }

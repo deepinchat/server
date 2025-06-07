@@ -9,7 +9,7 @@ public record SendMessageRequest(
     Guid ChatId,
     Guid? ParentId,
     Guid? ReplyToId,
-    string? Text,
+    string? Content,
     IEnumerable<MessageAttachmentRequest>? Attachments,
     IEnumerable<MessageMentionDto>? Mentions,
     JObject? Metadata);

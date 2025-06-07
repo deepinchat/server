@@ -44,15 +44,21 @@ namespace Deepin.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<ChatDto>> Update(Guid id, [FromBody] UpdateChatCommand command, CancellationToken cancellationToken = default)
+        public async Task<ActionResult<ChatDto>> Update(Guid id, [FromBody] UpdateChatRequest request, CancellationToken cancellationToken = default)
         {
-            if (command.Id != id)
-                return BadRequest();
-            var chat = await _mediator.Send(command, cancellationToken);
+            var chat = await _mediator.Send(new UpdateChatCommand()
+            {
+                Id = id,
+                Name = request.Name,
+                UserName = request.UserName,
+                Description = request.Description,
+                AvatarFileId = request.AvatarFileId,
+                IsPublic = request.IsPublic
+            }, cancellationToken);
             return Ok(chat);
         }
         [HttpPost]
-        public async Task<ActionResult<ChatDto>> Create([FromBody] ChatRequest request, CancellationToken cancellationToken = default)
+        public async Task<ActionResult<ChatDto>> Create([FromBody] CreateChatRequest request, CancellationToken cancellationToken = default)
         {
             var chat = await _mediator.Send(new CreateChatCommand
             {
@@ -86,15 +92,15 @@ namespace Deepin.API.Controllers
         }
 
         [HttpPost("{id}/join")]
-        public async Task<IActionResult> JoinChat([FromBody] JoinChatCommand command, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> JoinChat(Guid id, CancellationToken cancellationToken = default)
         {
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.Send(new JoinChatCommand(id, _userContext.UserId), cancellationToken);
             return Ok();
         }
         [HttpPost("{id}/leave")]
-        public async Task<IActionResult> LeaveChat([FromBody] LeaveChatCommand command, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> LeaveChat(Guid id, CancellationToken cancellationToken = default)
         {
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.Send(new LeaveChatCommand(id, _userContext.UserId), cancellationToken);
             return Ok();
         }
         [HttpGet("{id}/members")]
@@ -116,11 +122,9 @@ namespace Deepin.API.Controllers
             return Ok(status);
         }
         [HttpPost("{id}/read-status")]
-        public async Task<IActionResult> UpdateReadStatus(Guid id, [FromBody] UpdateChatReadStatusCommand command, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> UpdateReadStatus(Guid id, [FromBody] UpdateChatReadStatusRequest request, CancellationToken cancellationToken = default)
         {
-            if (command.ChatId != id)
-                return BadRequest();
-            await _mediator.Send(command, cancellationToken);
+            await _mediator.Send(new UpdateChatReadStatusCommand(id, _userContext.UserId, request.MessageId), cancellationToken);
             return Ok();
         }
     }
