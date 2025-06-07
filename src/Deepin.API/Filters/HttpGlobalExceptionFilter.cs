@@ -7,13 +7,14 @@ using Newtonsoft.Json.Linq;
 using System.Net;
 
 namespace Deepin.API.Filters;
+
 public class HttpGlobalExceptionFilter(ILogger<HttpGlobalExceptionFilter> logger, IWebHostEnvironment env) : IExceptionFilter
 {
     private readonly ILogger<HttpGlobalExceptionFilter> _logger = logger;
     public void OnException(ExceptionContext context)
     {
         logger.LogError(new EventId(context.Exception.HResult), context.Exception, context.Exception.Message);
-        if (context.Exception.GetType() == typeof(DomainException))
+        if (context.Exception.GetType() == typeof(DomainException) || context.Exception.GetType() == typeof(EntityNotFoundException))
         {
             var problemDetails = new HttpValidationProblemDetails()
             {

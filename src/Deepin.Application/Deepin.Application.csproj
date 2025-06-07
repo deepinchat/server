@@ -9,12 +9,14 @@
     <PackageReference Include="AutoMapper" Version="14.0.0" />
     <PackageReference Include="Dapper" Version="2.1.66" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.4" />
+    <PackageReference Include="MimeTypesMap" Version="1.0.9" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="../Deepin.Infrastructure/Deepin.Infrastructure.csproj" />
+    <ProjectReference Include="../Deepin.Domain/Deepin.Domain.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Models/Chats/" />
     <Folder Include="Validations/Chats/" />
   </ItemGroup>
 </Project>

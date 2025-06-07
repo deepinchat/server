@@ -1,5 +1,5 @@
-﻿using Deepin.Domain;
-using Microsoft.AspNetCore.Authentication;
+﻿using Deepin.Application.Interfaces;
+using Duende.IdentityServer.Extensions;
 using System.Security.Claims;
 
 namespace Deepin.API.Services;
@@ -15,19 +15,19 @@ public class HttpUserContext : IUserContext
     private string? _userId;
     private string? _userAgent;
     private string? _ipAddress;
-    public string UserId
+    public Guid UserId
     {
         get
         {
             if (string.IsNullOrEmpty(_userId))
             {
-                _userId = _context.HttpContext?.User.FindFirst("sub")?.Value;
+                _userId = _context.HttpContext?.User.GetSubjectId();
             }
             if (string.IsNullOrEmpty(_userId))
             {
                 _userId = _context.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             }
-            return _userId ?? string.Empty;
+            return string.IsNullOrEmpty(_userId) ? Guid.Empty : Guid.Parse(_userId);
         }
     }
     public string UserAgent
@@ -63,6 +63,4 @@ public class HttpUserContext : IUserContext
             return _ipAddress ?? string.Empty;
         }
     }
-
-    public string AccessToken => _context.HttpContext?.GetTokenAsync("access_token").Result ?? string.Empty;
 }

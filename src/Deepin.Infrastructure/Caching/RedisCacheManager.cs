@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using Deepin.Application.Interfaces;
 using Newtonsoft.Json;
 using StackExchange.Redis;
 

@@ -4,7 +4,6 @@ using Deepin.Application.Extensions;
 using Deepin.Infrastructure.Caching;
 using Deepin.Infrastructure.Configurations;
 using Deepin.Infrastructure.Data;
-using Deepin.Infrastructure.EventBus;
 using Deepin.Infrastructure.Extensions;
 
 namespace Deepin.API.Extensions;
@@ -13,21 +12,24 @@ public static class HostExtensions
 {
     public static WebApplicationBuilder AddApplicationService(this WebApplicationBuilder builder)
     {
-        var appOptions = new AppOptions
-        {
-            ConnectionStrings = builder.Configuration.GetSection("ConnectionStrings").Get<ConnectionStringOptions>()!,
-            Redis = builder.Configuration.GetSection("Redis").Get<RedisCacheOptions>(),
-            RabbitMq = builder.Configuration.GetSection("RabbitMq").Get<RabbitMqOptions>(),
-            Smtp = builder.Configuration.GetSection("Smtp").Get<SmtpOptions>()
-        };
-        builder.Services.AddSingleton(appOptions);
+        var redisOptions = builder.Configuration.GetSection("Redis").Get<RedisCacheOptions>();
         builder.Services
-        .AddInfrastructure(appOptions, [Assembly.GetExecutingAssembly()])
-        .AddApplication(appOptions)
-        .AddMigration<ConversationDbContext>()
+        .AddInfrastructure(
+            connectionStringOptions: builder.Configuration.GetSection("ConnectionStrings").Get<ConnectionStringOptions>() ?? throw new ArgumentNullException("ConnectionStrings must be not null."),
+            redisCacheOptions: redisOptions,
+            smtpOptions: builder.Configuration.GetSection("Smtp").Get<SmtpOptions>(),
+            storageOptions: builder.Configuration.GetSection("Storage").Get<StorageOptions>(),
+            rabbitMqOptions: builder.Configuration.GetSection("RabbitMq").Get<RabbitMqOptions>(),
+            eventConsumerAssemblies: [Assembly.GetExecutingAssembly()])
+        .AddApplication()
         .AddDefaultUserContexts()
-        .AddCustomDataProtection(appOptions.Redis)
-        .AddCustomSignalR(appOptions.Redis);
+        .AddCustomDataProtection(redisOptions)
+        .AddCustomSignalR(redisOptions)
+        .AddMigration<ChatDbContext>()
+        .AddMigration<MessageDbContext>()
+        .AddMigration<NotificationDbContext>()
+        .AddMigration<ContactDbContext>()
+        .AddMigration<StorageDbContext>();
 
         builder.AddServiceDefaults();
         return builder;

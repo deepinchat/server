@@ -1,15 +1,14 @@
 namespace Deepin.Domain.Emails;
 
-public class Email
+public class Email: Entity<long>, IAggregateRoot
 {
-    public long Id { get; set; }
     public string From { get; set; }
     public string To { get; set; }
     public string Subject { get; set; }
     public string Body { get; set; }
     public string? CC { get; set; }
     public bool IsBodyHtml { get; set; }
-    public DateTime CreatedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
     public Email()
     {
         From = string.Empty;

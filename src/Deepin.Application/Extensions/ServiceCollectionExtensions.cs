@@ -1,6 +1,4 @@
-using Deepin.Application.Queries.Chats;
-using Deepin.Infrastructure.Caching;
-using Deepin.Infrastructure.Configurations;
+using Deepin.Application.Queries;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -8,12 +6,8 @@ namespace Deepin.Application.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddApplication(this IServiceCollection services, AppOptions appOptions)
+    public static IServiceCollection AddApplication(this IServiceCollection services)
     {
-        if (appOptions is null)
-        {
-            throw new ArgumentNullException(nameof(appOptions), "AppOptions cannot be null");
-        }
         var assembly = typeof(ServiceCollectionExtensions).Assembly;
 
         services
@@ -23,16 +17,15 @@ public static class ServiceCollectionExtensions
         })
         .AddValidatorsFromAssembly(assembly)
         .AddAutoMapper(assembly)
-        .AddQueries(appOptions.ConnectionStrings);
+        .AddQueries();
         return services;
     }
-    private static IServiceCollection AddQueries(this IServiceCollection services, ConnectionStringOptions connectionStrings)
+    private static IServiceCollection AddQueries(this IServiceCollection services)
     {
-        if (connectionStrings is null)
-        {
-            throw new ArgumentNullException(nameof(connectionStrings), "Connection strings cannot be null");
-        }
-        services.AddScoped<IChatQueries>(sp => new ChatQueries(connectionStrings.Conversation ?? connectionStrings.Default, sp.GetRequiredService<ICacheManager>()));
+        services.AddScoped<IChatQueries, ChatQueries>();
+        services.AddScoped<IFileQueries, FileQueries>();
+        services.AddScoped<IMessageQueries, MessageQueries>();
+        services.AddScoped<IUserQueries, UserQueries>();
         return services;
     }
 }

@@ -3,24 +3,22 @@ namespace Deepin.Domain.ChatAggregate;
 public class ChatReadStatus : Entity<Guid>
 {
     public Guid ChatId { get; private set; }
-    public string UserId { get; private set; }
-    public string LastReadMessageId { get; private set; }
-    public DateTime LastReadAt { get; private set; }
+    public Guid UserId { get; private set; }
+    public Guid LastReadMessageId { get; private set; }
+    public DateTimeOffset LastReadAt { get; private set; }
     public ChatReadStatus()
     {
-        UserId = string.Empty;
-        LastReadMessageId = string.Empty;
-        LastReadAt = DateTime.UtcNow;
+        LastReadAt = DateTimeOffset.UtcNow;
     }
-    public ChatReadStatus(Guid chatId, string userId, string messageId) : this()
+    public ChatReadStatus(Guid chatId, Guid userId, Guid messageId) : this()
     {
         ChatId = chatId;
         UserId = userId;
         LastReadMessageId = messageId;
     }
-    public void ReadMessage(string messageId)
+    public void ReadMessage(Guid messageId)
     {
         LastReadMessageId = messageId;
-        LastReadAt = DateTime.UtcNow;
+        LastReadAt = DateTimeOffset.UtcNow;
     }
 }

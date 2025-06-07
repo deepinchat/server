@@ -1,26 +1,35 @@
 using AutoMapper;
-using Deepin.Application.Models.Chats;
-using Deepin.Domain;
+using Deepin.Application.DTOs.Chats;
+using Deepin.Application.Queries;
 using Deepin.Domain.ChatAggregate;
+using Deepin.Domain.Exceptions;
 using MediatR;
 
 namespace Deepin.Application.Commands.Chats;
 
-public class CreateDirectChatCommandHandler(IMapper mapper, IChatRepository chatRepository, IUserContext userContext) : IRequestHandler<CreateDirectChatCommand, ChatDto>
+public class CreateDirectChatCommandHandler(IMapper mapper, IChatRepository chatRepository, IUserQueries userQueries) : IRequestHandler<CreateDirectChatCommand, ChatDto>
 {
-    private readonly IMapper _mapper = mapper;
-    private readonly IChatRepository _chatRepository = chatRepository;
-    private readonly IUserContext _userContext = userContext;
     public async Task<ChatDto> Handle(CreateDirectChatCommand request, CancellationToken cancellationToken)
     {
+        var users = await userQueries.GetUsersAsync(request.Others, cancellationToken);
+
+        if (users == null || !users.Any())
+        {
+            throw new EntityNotFoundException($"User {string.Join(", ", request.Others)} not found.");
+        }
+        var nonExistentUsers = request.Others.Where(userId => !users.Any(x => x.Id == userId)).ToList();
+        if (nonExistentUsers.Any())
+        {
+            throw new EntityNotFoundException($"User {string.Join(", ", nonExistentUsers)} not found.");
+        }
         var chat = new Chat(
             type: ChatType.Direct,
-            createdBy: _userContext.UserId,
+            createdBy: request.OwnerId,
             groupInfo: null);
-        request.UserIds.ToList().ForEach(userId => chat.AddMember(new ChatMember(userId, ChatMemberRole.Owner)));
+        request.Others.ToList().ForEach(userId => chat.AddMember(new ChatMember(userId, ChatMemberRole.Owner)));
 
-        _chatRepository.Add(chat);
-        await _chatRepository.UnitOfWork.SaveEntitiesAsync(cancellationToken);
-        return _mapper.Map<ChatDto>(chat);
+        await chatRepository.AddAsync(chat);
+        await chatRepository.UnitOfWork.SaveEntitiesAsync(cancellationToken);
+        return mapper.Map<ChatDto>(chat);
     }
 }

@@ -8,13 +8,13 @@ public class JoinChatCommandHandler(IChatRepository chatRepository) : IRequestHa
 {
     public async Task<bool> Handle(JoinChatCommand request, CancellationToken cancellationToken)
     {
-        var chat = await chatRepository.GetByIdAsync(request.Id, cancellationToken);
+        var chat = await chatRepository.FindByIdAsync(request.Id, cancellationToken);
         if (chat is null)
         {
             throw new DomainException($"Chat with Id {request.Id} was not found");
         }
         chat.AddMember(new ChatMember(request.UserId, ChatMemberRole.Member));
-        chatRepository.Update(chat);
+        await chatRepository.UpdateAsync(chat);
         await chatRepository.UnitOfWork.SaveEntitiesAsync(cancellationToken);
 
         return true;

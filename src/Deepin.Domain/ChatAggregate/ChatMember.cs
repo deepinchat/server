@@ -1,18 +1,17 @@
 ﻿namespace Deepin.Domain.ChatAggregate;
 public class ChatMember : Entity<Guid>
 {
-    public string UserId { get; private set; }
+    public Guid UserId { get; private set; }
     public string? DisplayName { get; private set; }
-    public DateTime JoinedAt { get; private set; }
-    public DateTime UpdatedAt { get; private set; }
+    public DateTimeOffset JoinedAt { get; private set; }
+    public DateTimeOffset UpdatedAt { get; private set; }
     public ChatMemberRole Role { get; private set; }
     public ChatMember()
     {
-        UserId = string.Empty;
-        JoinedAt = DateTime.UtcNow;
-        UpdatedAt = DateTime.UtcNow;
+        JoinedAt = DateTimeOffset.UtcNow;
+        UpdatedAt = DateTimeOffset.UtcNow;
     }
-    public ChatMember(string userId, ChatMemberRole role, string? displayName = null) : this()
+    public ChatMember(Guid userId, ChatMemberRole role, string? displayName = null) : this()
     {
         UserId = userId;
         Role = role;
@@ -21,11 +20,11 @@ public class ChatMember : Entity<Guid>
     public void UpdateRole(ChatMemberRole role)
     {
         Role = role;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = DateTimeOffset.UtcNow;
     }
     public void UpdateDisplayName(string displayName)
     {
         DisplayName = displayName;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = DateTimeOffset.UtcNow;
     }
 }
