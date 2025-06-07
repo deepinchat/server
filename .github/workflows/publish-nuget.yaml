@@ -1,0 +1,32 @@
+name: Publish .NET Package to NuGet
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "**/*.csproj"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x # Adjust the version as needed
+
+      - name: Restore Dependencies
+        run: dotnet restore src/Deepin.SDK/Deepin.SDK.csproj
+
+      - name: Build Project
+        run: dotnet build src/Deepin.SDK/Deepin.SDK.csproj --configuration Release
+
+      - name: Pack NuGet Package
+        run: dotnet pack src/Deepin.SDK/Deepin.SDK.csproj --configuration Release --output ./nupkgs
+      - name: Publish to NuGet
+        run: dotnet nuget push ./nupkgs/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
