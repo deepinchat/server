@@ -21,7 +21,7 @@ public abstract class BaseClient
         HttpClient = httpClient;
         Options = options.Value;
         Logger = logger;
-        
+
         JsonOptions = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -39,12 +39,6 @@ public abstract class BaseClient
         }
 
         HttpClient.Timeout = Options.Timeout;
-
-        if (!string.IsNullOrEmpty(Options.AccessToken))
-        {
-            HttpClient.DefaultRequestHeaders.Authorization = 
-                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", Options.AccessToken);
-        }
 
         foreach (var header in Options.DefaultHeaders)
         {
@@ -130,12 +124,12 @@ public abstract class BaseClient
     private async Task<T?> HandleResponse<T>(HttpResponseMessage response)
     {
         var content = await response.Content.ReadAsStringAsync();
-        
+
         if (!response.IsSuccessStatusCode)
         {
-            Logger.LogWarning("Request failed with status {StatusCode}: {Content}", 
+            Logger.LogWarning("Request failed with status {StatusCode}: {Content}",
                 response.StatusCode, content);
-            
+
             var errorMessage = $"Request failed with status {response.StatusCode}";
             if (!string.IsNullOrEmpty(content))
             {

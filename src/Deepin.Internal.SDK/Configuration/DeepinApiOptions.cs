@@ -16,11 +16,6 @@ public class DeepinApiOptions
     public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(30);
 
     /// <summary>
-    /// The authentication token for API requests
-    /// </summary>
-    public string? AccessToken { get; set; }
-
-    /// <summary>
     /// Additional headers to include with requests
     /// </summary>
     public Dictionary<string, string> DefaultHeaders { get; set; } = new();

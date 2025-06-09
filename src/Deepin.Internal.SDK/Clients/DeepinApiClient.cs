@@ -28,16 +28,6 @@ public interface IDeepinApiClient
     /// Client for user-related operations
     /// </summary>
     IUsersClient Users { get; }
-
-    /// <summary>
-    /// Updates the authentication token for all clients
-    /// </summary>
-    void SetAccessToken(string accessToken);
-
-    /// <summary>
-    /// Clears the authentication token for all clients
-    /// </summary>
-    void ClearAccessToken();
 }
 
 /// <summary>
@@ -45,9 +35,6 @@ public interface IDeepinApiClient
 /// </summary>
 public class DeepinApiClient : IDeepinApiClient
 {
-    private readonly HttpClient _httpClient;
-    private readonly IOptionsMonitor<DeepinApiOptions> _optionsMonitor;
-
     public DeepinApiClient(
         HttpClient httpClient,
         IOptionsMonitor<DeepinApiOptions> optionsMonitor,
@@ -57,8 +44,6 @@ public class DeepinApiClient : IDeepinApiClient
         ILogger<FilesClient> filesLogger,
         ILogger<UsersClient> usersLogger)
     {
-        _httpClient = httpClient;
-        _optionsMonitor = optionsMonitor;
 
         // Create a wrapper that implements IOptions<T>
         var optionsWrapper = new OptionsWrapper<DeepinApiOptions>(optionsMonitor.CurrentValue);
@@ -89,26 +74,4 @@ public class DeepinApiClient : IDeepinApiClient
     /// Client for user-related operations
     /// </summary>
     public IUsersClient Users { get; }
-
-    /// <summary>
-    /// Updates the authentication token for all clients
-    /// </summary>
-    public void SetAccessToken(string accessToken)
-    {
-        if (string.IsNullOrEmpty(accessToken))
-        {
-            throw new ArgumentException("Access token cannot be null or empty", nameof(accessToken));
-        }
-
-        _httpClient.DefaultRequestHeaders.Authorization = 
-            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
-    }
-
-    /// <summary>
-    /// Clears the authentication token for all clients
-    /// </summary>
-    public void ClearAccessToken()
-    {
-        _httpClient.DefaultRequestHeaders.Authorization = null;
-    }
 }

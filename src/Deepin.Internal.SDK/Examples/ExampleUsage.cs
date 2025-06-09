@@ -1,5 +1,4 @@
 using Deepin.Internal.SDK.Clients;
-using Deepin.Internal.SDK.Configuration;
 using Deepin.Internal.SDK.Extensions;
 using Deepin.Internal.SDK.Models;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,7 +27,6 @@ public class ExampleUsage
         services.AddDeepinApiClient(options =>
         {
             options.BaseUrl = "https://api.deepin.example.com";
-            options.AccessToken = "your-access-token";
             options.Timeout = TimeSpan.FromSeconds(30);
         });
 
