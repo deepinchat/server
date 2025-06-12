@@ -10,6 +10,7 @@ namespace Deepin.Application.Queries;
 public interface IChatQueries
 {
     Task<ChatDto?> GetChat(Guid id, CancellationToken cancellationToken = default);
+    Task<IEnumerable<DirectChatDto>> GetDirectChatsAsync(Guid userId, CancellationToken cancellationToken = default);
     Task<IEnumerable<ChatDto>> GetChats(Guid userId, CancellationToken cancellationToken = default);
     Task<IPagedResult<ChatDto>> SearchChats(int limit, int offset, string? search = null, ChatType? type = null, CancellationToken cancellationToken = default);
     Task<ChatMemberDto?> GetChatMember(Guid chatId, Guid userId, CancellationToken cancellationToken = default);
@@ -34,13 +35,46 @@ public class ChatQueries(IDbConnectionFactory dbConnectionFactory) : IChatQuerie
                             chat_members cm ON c.id = cm.chat_id
                         WHERE 
                             c.is_deleted = false 
+                        AND
+                            LOWER(c.type) != 'direct'
                         AND 
                             cm.user_id = @userId
                         ORDER BY
                             c.updated_at DESC";
             var command = new CommandDefinition(sql, new { userId }, cancellationToken: cancellationToken);
             var result = await connection.QueryAsync<dynamic>(command);
-            return result.Select(MapChatDto);
+            return result.Select(MapChatDto).ToList();
+        }
+    }
+    public async Task<IEnumerable<DirectChatDto>> GetDirectChatsAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        using (var connection = await _dbConnectionFactory.CreateChatDbConnectionAsync(cancellationToken))
+        {
+            var sql = @"SELECT 
+                            c.id,
+                            c.created_by,
+                            c.created_at,
+                            c.updated_at,
+                            cm2.user_id
+                        FROM 
+                            chats c 
+                        JOIN 
+                            chat_members cm ON c.id = cm.chat_id
+                        JOIN 
+                            chat_members cm2 ON c.id = cm2.chat_id
+                        WHERE 
+                            c.is_deleted = false 
+                        AND
+                            LOWER(c.type) = 'direct'
+                        AND 
+                            cm.user_id = @userId
+                        AND
+                            cm2.user_id != @userId
+                        ORDER BY
+                            c.updated_at DESC";
+            var command = new CommandDefinition(sql, new { userId }, cancellationToken: cancellationToken);
+            var result = await connection.QueryAsync<dynamic>(command);
+            return result.Select(MapDirectChatDto).ToList();
         }
     }
     public async Task<IPagedResult<ChatDto>> SearchChats(int limit, int offset, string? search = null, ChatType? type = null, CancellationToken cancellationToken = default)
@@ -131,7 +165,7 @@ public class ChatQueries(IDbConnectionFactory dbConnectionFactory) : IChatQuerie
             var sql = @"SELECT * FROM chat_read_statuses WHERE user_id = @userId";
             var command = new CommandDefinition(sql, new { userId }, cancellationToken: cancellationToken);
             var rows = await connection.QueryAsync<dynamic>(command);
-            return rows is null ? [] : rows.Select(MapChatReadStatusDto);
+            return rows?.Select(MapChatReadStatusDto).ToList() ?? new List<ChatReadStatusDto>();
         }
     }
 
@@ -168,7 +202,17 @@ public class ChatQueries(IDbConnectionFactory dbConnectionFactory) : IChatQuerie
             Role = Enum.Parse<ChatMemberRole>(row.role, true)
         };
     }
-
+    private DirectChatDto MapDirectChatDto(dynamic result)
+    {
+        return new DirectChatDto
+        {
+            Id = result.id,
+            CreatedBy = result.created_by,
+            CreatedAt = result.created_at,
+            UpdatedAt = result.updated_at,
+            UserId = result.user_id
+        };
+    }
     private ChatDto MapChatDto(dynamic result)
     {
         var dto = new ChatDto

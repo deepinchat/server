@@ -1,5 +1,3 @@
-using System;
-
 namespace Deepin.API.Models.Messages;
 
 public class SearchMessageRequest

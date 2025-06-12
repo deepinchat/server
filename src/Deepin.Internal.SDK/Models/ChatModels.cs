@@ -12,6 +12,14 @@ public class Chat
     public DateTimeOffset UpdatedAt { get; set; }
     public ChatGroupInfo? GroupInfo { get; set; }
 }
+public class DirectChat
+{
+    public Guid Id { get; set; }
+    public Guid CreatedBy { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; }
+    public Guid UserId { get; set; }
+}
 public class ChatGroupInfo
 {
     public string Name { get; set; } = string.Empty;

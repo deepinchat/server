@@ -1,6 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Configuration;
 using Deepin.Internal.SDK.Configuration;
 using Deepin.Internal.SDK.Clients;
 

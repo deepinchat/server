@@ -2,7 +2,6 @@ using Dapper;
 using Deepin.Application.DTOs;
 using Deepin.Application.DTOs.Messages;
 using Deepin.Application.Interfaces;
-using Deepin.Application.Requests.Messages;
 using Deepin.Domain.MessageAggregate;
 using Newtonsoft.Json;
 

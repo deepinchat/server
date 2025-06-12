@@ -3,7 +3,6 @@ using Deepin.Application.Commands.Files;
 using Deepin.Application.Interfaces;
 using Deepin.Application.Queries;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Deepin.API.Controllers

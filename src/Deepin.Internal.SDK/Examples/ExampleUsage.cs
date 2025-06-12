@@ -41,10 +41,10 @@ public class ExampleUsage
             // Example: Get all chats
             Console.WriteLine("Getting user chats...");
             var chats = await apiClient.Chats.GetChatsAsync();
-            Console.WriteLine($"Found {chats.Count} chats");
+            Console.WriteLine($"Found {chats.Count()} chats");
 
             // Example: Send a message
-            if (chats.Count > 0)
+            if (chats.Count() > 0)
             {
                 var firstChat = chats.First();
                 Console.WriteLine($"Sending message to chat: {firstChat.GroupInfo?.Name}");

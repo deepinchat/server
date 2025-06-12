@@ -1,6 +1,5 @@
 using AutoMapper;
 using Deepin.Application.DTOs.Chats;
-using Deepin.Application.Interfaces;
 using Deepin.Domain.ChatAggregate;
 using MediatR;
 

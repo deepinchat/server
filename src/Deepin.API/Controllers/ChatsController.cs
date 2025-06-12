@@ -1,5 +1,4 @@
 using Deepin.API.Models.Chats;
-using Deepin.API.Services;
 using Deepin.Application.Commands.Chats;
 using Deepin.Application.DTOs;
 using Deepin.Application.DTOs.Chats;
@@ -29,6 +28,12 @@ namespace Deepin.API.Controllers
         public async Task<ActionResult<IEnumerable<ChatDto>>> GetChats(CancellationToken cancellationToken = default)
         {
             var chats = await _mediator.Send(new GetChatsCommand(_userContext.UserId), cancellationToken);
+            return Ok(chats);
+        }
+        [HttpGet("direct")]
+        public async Task<ActionResult<IEnumerable<ChatDto>>> GetDirectChats(CancellationToken cancellationToken = default)
+        {
+            var chats = await _mediator.Send(new GetDirectChatsCommand(_userContext.UserId), cancellationToken);
             return Ok(chats);
         }
         [HttpGet("search")]

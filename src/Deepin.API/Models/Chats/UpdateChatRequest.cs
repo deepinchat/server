@@ -1,5 +1,3 @@
-using System;
-
 namespace Deepin.API.Models.Chats;
 
 public class UpdateChatRequest

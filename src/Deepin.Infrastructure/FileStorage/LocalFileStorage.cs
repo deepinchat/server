@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using Deepin.Application.DTOs.Files;
+﻿using Deepin.Application.DTOs.Files;
 using Deepin.Application.Interfaces;
 using Deepin.Domain.FileAggregate;
 using Deepin.Infrastructure.Configurations;

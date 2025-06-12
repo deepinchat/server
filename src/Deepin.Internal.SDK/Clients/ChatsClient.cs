@@ -15,9 +15,10 @@ public interface IChatsClient
     Task<bool> DeleteChatAsync(Guid id, CancellationToken cancellationToken = default);
     Task<Chat?> GetChatAsync(Guid id, CancellationToken cancellationToken = default);
     Task<IPagedResult<ChatMember>> GetChatMembersAsync(Guid id, int offset = 0, int limit = 20, CancellationToken cancellationToken = default);
-    Task<List<Chat>> GetChatsAsync(CancellationToken cancellationToken = default);
+    Task<IEnumerable<Chat>> GetChatsAsync(CancellationToken cancellationToken = default);
+    Task<IEnumerable<DirectChat>> GetDirectChatsAsync(CancellationToken cancellationToken = default);
     Task<ReadStatus?> GetReadStatusAsync(Guid id, CancellationToken cancellationToken = default);
-    Task<List<ReadStatus>> GetReadStatusesAsync(CancellationToken cancellationToken = default);
+    Task<IEnumerable<ReadStatus>> GetReadStatusesAsync(CancellationToken cancellationToken = default);
     Task<bool> JoinChatAsync(Guid id, CancellationToken cancellationToken = default);
     Task<bool> LeaveChatAsync(Guid id, CancellationToken cancellationToken = default);
     Task<IPagedResult<Chat>> SearchChatsAsync(SearchChatRequest request, CancellationToken cancellationToken = default);
@@ -40,9 +41,14 @@ public class ChatsClient : BaseClient, IChatsClient
         return await GetAsync<Chat>($"api/v1/chats/{id}", cancellationToken);
     }
 
-    public async Task<List<Chat>> GetChatsAsync(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Chat>> GetChatsAsync(CancellationToken cancellationToken = default)
     {
         return await GetAsync<List<Chat>>("api/v1/chats", cancellationToken) ?? new List<Chat>();
+    }
+
+    public async Task<IEnumerable<DirectChat>> GetDirectChatsAsync(CancellationToken cancellationToken = default)
+    {
+        return await GetAsync<List<DirectChat>>("api/v1/chats/direct", cancellationToken) ?? new List<DirectChat>();
     }
 
     public async Task<IPagedResult<Chat>> SearchChatsAsync(SearchChatRequest request, CancellationToken cancellationToken = default)
@@ -117,7 +123,7 @@ public class ChatsClient : BaseClient, IChatsClient
         return await GetAsync<IPagedResult<ChatMember>>($"api/v1/chats/{id}/members?offset={offset}&limit={limit}", cancellationToken) ?? new PagedResult<ChatMember>();
     }
 
-    public async Task<List<ReadStatus>> GetReadStatusesAsync(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<ReadStatus>> GetReadStatusesAsync(CancellationToken cancellationToken = default)
     {
         return await GetAsync<List<ReadStatus>>("api/v1/chats/read-statuses", cancellationToken) ?? new List<ReadStatus>();
     }

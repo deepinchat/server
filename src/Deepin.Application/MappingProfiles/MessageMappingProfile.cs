@@ -1,4 +1,3 @@
-using System;
 using AutoMapper;
 using Deepin.Application.DTOs.Messages;
 using Deepin.Domain.MessageAggregate;
