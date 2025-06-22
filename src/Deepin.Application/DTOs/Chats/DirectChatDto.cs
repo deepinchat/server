@@ -6,5 +6,5 @@ public class DirectChatDto
     public Guid CreatedBy { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
-    public Guid UserId { get; set; }
+    public List<ChatMemberDto> Members { get; set; } = [];
 }

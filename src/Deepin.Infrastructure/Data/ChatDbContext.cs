@@ -12,15 +12,23 @@ public class ChatDbContext : DbContextBase<ChatDbContext>
     public ChatDbContext(DbContextOptions<ChatDbContext> options, IMediator? mediator = null) : base(options, mediator)
     {
     }
-    public DbSet<Chat> Chats { get; set; }
+    public DbSet<GroupChat> GroupChats { get; set; }
+    public DbSet<DirectChat> DirectChats { get; set; }
+    public DbSet<ChatJoinRequest> ChatJoinRequests { get; set; }
     public DbSet<ChatReadStatus> ChatReadStatuses { get; set; }
+    public DbSet<ChatMember> ChatMembers { get; set; }
+    public DbSet<ChatSettings> ChatSettings { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.HasDefaultSchema(DEFAULT_SCHEMA);
-        modelBuilder.ApplyConfiguration(new ChatEntityTypeConfiguration());
+        modelBuilder.ApplyConfiguration(new ChatBaseEntityTypeConfiguration());
+        modelBuilder.ApplyConfiguration(new GroupChatEntityTypeConfiguration());
+        modelBuilder.ApplyConfiguration(new DirectChatEntityTypeConfiguration());
+        modelBuilder.ApplyConfiguration(new ChatJoinRequestEntityTypeConfiguration());
         modelBuilder.ApplyConfiguration(new ChatMemberEntityTypeConfiguration());
         modelBuilder.ApplyConfiguration(new ChatReadStatusEntityTypeConfiguration());
+        modelBuilder.ApplyConfiguration(new ChatSettingsEntityTypeConfiguration());
     }
 }
 

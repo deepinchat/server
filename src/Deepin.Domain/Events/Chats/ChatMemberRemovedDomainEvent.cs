@@ -3,4 +3,4 @@ using MediatR;
 
 namespace Deepin.Domain.Events;
 
-public record ChatMemberRemovedDomainEvent(Chat Chat, ChatMember ChatMember) : INotification;
+public record ChatMemberRemovedDomainEvent(ChatBase Chat, ChatMember ChatMember) : INotification;

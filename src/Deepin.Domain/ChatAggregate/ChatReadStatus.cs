@@ -4,21 +4,37 @@ public class ChatReadStatus : Entity<Guid>
 {
     public Guid ChatId { get; private set; }
     public Guid UserId { get; private set; }
-    public Guid LastReadMessageId { get; private set; }
+    public Guid? LastReadMessageId { get; private set; }
     public DateTimeOffset LastReadAt { get; private set; }
-    public ChatReadStatus()
+    public int UnreadCount { get; private set; }
+    public ChatReadStatus() { }
+
+    public ChatReadStatus(Guid userId, Guid? messageId = null) : this()
     {
-        LastReadAt = DateTimeOffset.UtcNow;
+        UserId = userId;
+        if (messageId.HasValue)
+        {
+            ReadMessage(messageId.Value);
+        }
     }
-    public ChatReadStatus(Guid chatId, Guid userId, Guid messageId) : this()
+    public ChatReadStatus(Guid chatId, Guid userId, Guid? messageId = null) : this(userId, messageId)
     {
         ChatId = chatId;
-        UserId = userId;
-        LastReadMessageId = messageId;
     }
     public void ReadMessage(Guid messageId)
     {
         LastReadMessageId = messageId;
         LastReadAt = DateTimeOffset.UtcNow;
+        ResetUnreadCount();
+    }
+
+    public void IncrementUnreadCount()
+    {
+        UnreadCount++;
+    }
+
+    public void ResetUnreadCount()
+    {
+        UnreadCount = 0;
     }
 }

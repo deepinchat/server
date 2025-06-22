@@ -130,7 +130,10 @@ public static class ServiceCollectionExtensions
         {
             options.UseNpgsql(connectionString);
         });
-        services.AddScoped<IChatRepository, ChatRepository>();
+        services.AddScoped<IDirectChatRepository, DirectChatRepository>();
+        services.AddScoped<IGroupChatRepository, GroupChatRepository>();
+        services.AddScoped<IChatReadStatusRepository, ChatReadStatusRepository>();
+        services.AddScoped<IChatSettingsRepository, ChatSettingsRepository>();
         return services;
     }
     public static IServiceCollection AddContactDbContext(this IServiceCollection services, string connectionString)

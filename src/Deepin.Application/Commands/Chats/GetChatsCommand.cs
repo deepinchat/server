@@ -6,13 +6,22 @@ using MediatR;
 
 namespace Deepin.Application.Commands.Chats;
 
-public record GetChatsCommand(Guid UserId) : IRequest<IEnumerable<ChatDto>?>;
+public record GetDirectChatsCommand(Guid UserId) : IRequest<IEnumerable<DirectChatDto>?>;
+public record GetGroupChatsCommand(Guid UserId) : IRequest<IEnumerable<GroupChatDto>?>;
 
-public class GetChatsCommandHandler(ICacheManager cacheManager, IChatQueries chatQueries) : IRequestHandler<GetChatsCommand, IEnumerable<ChatDto>?>
+public class GetChatsCommandHandler(ICacheManager cacheManager, IChatQueries chatQueries) :
+IRequestHandler<GetDirectChatsCommand, IEnumerable<DirectChatDto>?>,
+IRequestHandler<GetGroupChatsCommand, IEnumerable<GroupChatDto>?>
 {
-    public async Task<IEnumerable<ChatDto>?> Handle(GetChatsCommand request, CancellationToken cancellationToken)
+    public async Task<IEnumerable<DirectChatDto>?> Handle(GetDirectChatsCommand request, CancellationToken cancellationToken)
     {
-        var cacheKey = CacheKeys.GetChatsCacheKey(request.UserId);
-        return await cacheManager.GetOrSetAsync(cacheKey, () => chatQueries.GetChats(request.UserId, cancellationToken));
+        var cacheKey = CacheKeys.GetDirectChatsCacheKey(request.UserId);
+        return await cacheManager.GetOrSetAsync(cacheKey, () => chatQueries.GetDirectChatsAsync(request.UserId, cancellationToken));
+    }
+
+    public async Task<IEnumerable<GroupChatDto>?> Handle(GetGroupChatsCommand request, CancellationToken cancellationToken)
+    {
+        var cacheKey = CacheKeys.GetMessageByIdCacheKey(request.UserId);
+        return await cacheManager.GetOrSetAsync(cacheKey, () => chatQueries.GetGroupChatsAsync(request.UserId, cancellationToken));
     }
 }

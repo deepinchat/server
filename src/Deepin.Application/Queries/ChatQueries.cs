@@ -9,43 +9,53 @@ namespace Deepin.Application.Queries;
 
 public interface IChatQueries
 {
-    Task<ChatDto?> GetChat(Guid id, CancellationToken cancellationToken = default);
+    Task<ChatType?> GetChatTypeAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<DirectChatDto?> GetDirectChatByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<GroupChatDto?> GetGroupChatByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<IEnumerable<DirectChatDto>> GetDirectChatsAsync(Guid userId, CancellationToken cancellationToken = default);
-    Task<IEnumerable<ChatDto>> GetChats(Guid userId, CancellationToken cancellationToken = default);
-    Task<IPagedResult<ChatDto>> SearchChats(int limit, int offset, string? search = null, ChatType? type = null, CancellationToken cancellationToken = default);
+    Task<IEnumerable<GroupChatDto>> GetGroupChatsAsync(Guid userId, CancellationToken cancellationToken = default);
+
     Task<ChatMemberDto?> GetChatMember(Guid chatId, Guid userId, CancellationToken cancellationToken = default);
     Task<IPagedResult<ChatMemberDto>> GetChatMembers(Guid chatId, int offset, int limit, CancellationToken cancellationToken = default);
-    Task<IEnumerable<ChatReadStatusDto>> GetChatReadStatusesAsync(Guid userId, CancellationToken cancellationToken = default);
-    Task<ChatReadStatusDto?> GetChatReadStatusAsync(Guid chatId, Guid userId, CancellationToken cancellationToken = default);
 }
 
 public class ChatQueries(IDbConnectionFactory dbConnectionFactory) : IChatQueries
 {
     private readonly IDbConnectionFactory _dbConnectionFactory = dbConnectionFactory;
 
-    public async Task<IEnumerable<ChatDto>> GetChats(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<DirectChatDto?> GetDirectChatByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         using (var connection = await _dbConnectionFactory.CreateChatDbConnectionAsync(cancellationToken))
         {
             var sql = @"SELECT 
-                            c.*
+                            c.id,
+                            c.created_by,
+                            c.created_at,
+                            c.updated_at,
+                            cm.id as member_id,
+                            cm.user_id,
+                            cm.display_name,
+                            cm.joined_at,
+                            cm.updated_at,
+                            cm.role,
+                            cm.is_muted,
+                            cm.is_banned
                         FROM 
                             chats c 
                         JOIN 
-                            chat_members cm ON c.id = cm.chat_id
+                            chat_members cm ON c.id = cm.chat_id 
                         WHERE 
                             c.is_deleted = false 
                         AND
-                            LOWER(c.type) != 'direct'
+                           c.type = 0
                         AND 
-                            cm.user_id = @userId
-                        ORDER BY
-                            c.updated_at DESC";
-            var command = new CommandDefinition(sql, new { userId }, cancellationToken: cancellationToken);
-            var result = await connection.QueryAsync<dynamic>(command);
-            return result.Select(MapChatDto).ToList();
+                           c.id = @id";
+            var command = new CommandDefinition(sql, new { id, }, cancellationToken: cancellationToken);
+            var rows = await connection.QueryAsync<dynamic>(command);
+            return rows is null ? null : MapDirectChatDto(rows);
         }
     }
+
     public async Task<IEnumerable<DirectChatDto>> GetDirectChatsAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         using (var connection = await _dbConnectionFactory.CreateChatDbConnectionAsync(cancellationToken))
@@ -55,7 +65,14 @@ public class ChatQueries(IDbConnectionFactory dbConnectionFactory) : IChatQuerie
                             c.created_by,
                             c.created_at,
                             c.updated_at,
-                            cm2.user_id
+                            cm.id as member_id,
+                            cm.user_id,
+                            cm.display_name,
+                            cm.joined_at,
+                            cm.updated_at,
+                            cm.role,
+                            cm.is_muted,
+                            cm.is_banned
                         FROM 
                             chats c 
                         JOIN 
@@ -65,72 +82,78 @@ public class ChatQueries(IDbConnectionFactory dbConnectionFactory) : IChatQuerie
                         WHERE 
                             c.is_deleted = false 
                         AND
-                            LOWER(c.type) = 'direct'
+                            c.type = 0
                         AND 
-                            cm.user_id = @userId
+                            cm.user_id != @userId
                         AND
-                            cm2.user_id != @userId
+                            cm2.user_id = @userId
+                        ORDER BY
+                            c.updated_at DESC";
+            var command = new CommandDefinition(sql, new { userId }, cancellationToken: cancellationToken);
+            var rows = await connection.QueryAsync<dynamic>(command);
+            return rows.GroupBy(row => row.id).Select(MapDirectChatDto).ToList();
+        }
+    }
+
+    public async Task<GroupChatDto?> GetGroupChatByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        using (var connection = await _dbConnectionFactory.CreateChatDbConnectionAsync(cancellationToken))
+        {
+            var sql = @"SELECT 
+                            c.id,
+                            c.created_by,
+                            c.created_at,
+                            c.updated_at,
+                            c.name,
+                            c.avatar_file_id,
+                            c.description,
+                            c.is_public,
+                            c.user_name
+                        FROM 
+                            chats c 
+                        WHERE 
+                            c.is_deleted = false 
+                        AND
+                           c.type = 1
+                        AND 
+                           c.id = @id";
+            var command = new CommandDefinition(sql, new { id }, cancellationToken: cancellationToken);
+            var result = await connection.QueryFirstOrDefaultAsync<dynamic>(command);
+            return result is null ? null : MapGroupChatDto(result);
+        }
+    }
+
+    public async Task<IEnumerable<GroupChatDto>> GetGroupChatsAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        using (var connection = await _dbConnectionFactory.CreateChatDbConnectionAsync(cancellationToken))
+        {
+            var sql = @"SELECT 
+                            c.id,
+                            c.created_at,
+                            c.updated_at,
+                            c.created_by,
+                            c.name,
+                            c.avatar_file_id,
+                            c.description,
+                            c.is_public,
+                            c.user_name
+                        FROM 
+                            chats c 
+                        JOIN 
+                            chat_members cm ON c.id = cm.chat_id
+                        WHERE 
+                            c.is_deleted = false 
+                        AND
+                           c.type = 1
+                        AND 
+                           cm.user_id = @userId
                         ORDER BY
                             c.updated_at DESC";
             var command = new CommandDefinition(sql, new { userId }, cancellationToken: cancellationToken);
             var result = await connection.QueryAsync<dynamic>(command);
-            return result.Select(MapDirectChatDto).ToList();
+            return result.Select(MapGroupChatDto).ToList();
         }
     }
-    public async Task<IPagedResult<ChatDto>> SearchChats(int limit, int offset, string? search = null, ChatType? type = null, CancellationToken cancellationToken = default)
-    {
-        using var connection = await _dbConnectionFactory.CreateChatDbConnectionAsync(cancellationToken);
-        var query = @"SELECT  c.* FROM chats c";
-        var countQuery = "SELECT COUNT(*) FROM chats c";
-        var condations = new List<string>
-        {
-            "c.is_deleted = false",
-            "c.is_public = true"
-        };
-
-        if (type.HasValue)
-        {
-            condations.Add("c.type = @type");
-        }
-        if (!string.IsNullOrEmpty(search))
-        {
-            condations.Add("(c.name ILIKE @search OR c.user_name ILIKE @search)");
-        }
-        if (condations.Any())
-        {
-            query += " WHERE " + string.Join(" AND ", condations);
-            countQuery += " WHERE " + string.Join(" AND ", condations);
-        }
-        query += " ORDER BY c.updated_at DESC OFFSET @offset LIMIT @limit";
-        countQuery += " OFFSET @offset LIMIT @limit";
-        var countCommand = new CommandDefinition(countQuery, new { search = $"%{search}%", type }, cancellationToken: cancellationToken);
-        var count = await connection.ExecuteScalarAsync<int>(countCommand);
-        if (count == 0)
-        {
-            return new PagedResult<ChatDto>(new List<ChatDto>(), 0, 0, 0);
-        }
-        var command = new CommandDefinition(query, new { limit, offset, search = $"%{search}%", type }, cancellationToken: cancellationToken);
-        var rows = await connection.QueryAsync<dynamic>(command);
-        var chats = rows.Select(MapChatDto);
-        return new PagedResult<ChatDto>(chats.ToList(), offset, limit, count);
-    }
-    public async Task<ChatDto?> GetChat(Guid id, CancellationToken cancellationToken = default)
-    {
-        using var connection = await _dbConnectionFactory.CreateChatDbConnectionAsync(cancellationToken);
-        var sql = @"
-                SELECT 
-                    * 
-                FROM 
-                    chats 
-                WHERE 
-                    id = @id 
-                AND 
-                    is_deleted = false";
-        var command = new CommandDefinition(sql, new { id }, cancellationToken: cancellationToken);
-        var result = await connection.QueryFirstOrDefaultAsync<dynamic>(command);
-        return result is null ? null : MapChatDto(result);
-    }
-
     public async Task<ChatMemberDto?> GetChatMember(Guid chatId, Guid userId, CancellationToken cancellationToken = default)
     {
         using (var connection = await _dbConnectionFactory.CreateChatDbConnectionAsync(cancellationToken))
@@ -158,40 +181,64 @@ public class ChatQueries(IDbConnectionFactory dbConnectionFactory) : IChatQuerie
         }
     }
 
-    public async Task<IEnumerable<ChatReadStatusDto>> GetChatReadStatusesAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<ChatType?> GetChatTypeAsync(Guid id, CancellationToken cancellationToken = default)
     {
         using (var connection = await _dbConnectionFactory.CreateChatDbConnectionAsync(cancellationToken))
         {
-            var sql = @"SELECT * FROM chat_read_statuses WHERE user_id = @userId";
-            var command = new CommandDefinition(sql, new { userId }, cancellationToken: cancellationToken);
-            var rows = await connection.QueryAsync<dynamic>(command);
-            return rows?.Select(MapChatReadStatusDto).ToList() ?? new List<ChatReadStatusDto>();
+            var sql = @"SELECT type FROM chats WHERE id = @id AND is_deleted = false";
+            var command = new CommandDefinition(sql, new { id }, cancellationToken: cancellationToken);
+            var result = await connection.ExecuteScalarAsync<int>(command);
+            if (result == 0)
+            {
+                return null;
+            }
+            return (ChatType)result;
         }
     }
 
-    public async Task<ChatReadStatusDto?> GetChatReadStatusAsync(Guid chatId, Guid userId, CancellationToken cancellationToken = default)
+    #region Map Methods
+    private static GroupChatDto MapGroupChatDto(dynamic result)
     {
-        using (var connection = await _dbConnectionFactory.CreateChatDbConnectionAsync(cancellationToken))
+        var dto = new GroupChatDto
         {
-            var sql = @"SELECT * FROM chat_read_statuses WHERE chat_id = @chatId AND user_id = @userId";
-            var command = new CommandDefinition(sql, new { chatId, userId }, cancellationToken: cancellationToken);
-            var row = await connection.QueryFirstOrDefaultAsync<dynamic>(command);
-            return row is null ? null : MapChatReadStatusDto(row);
-        }
-    }
-
-    private ChatReadStatusDto MapChatReadStatusDto(dynamic row)
-    {
-        return new ChatReadStatusDto
-        {
-            ChatId = row.chat_id,
-            UserId = row.user_id,
-            LastReadMessageId = row.last_read_message_id,
-            LastReadAt = row.last_read_at
+            Id = result.id,
+            CreatedAt = result.created_at,
+            UpdatedAt = result.updated_at,
+            CreatedBy = result.created_by,
+            Name = result.name,
+            AvatarFileId = result.avatar_file_id,
+            Description = result.description,
+            IsPublic = result.is_public,
+            UserName = result.user_name
         };
+        return dto;
     }
 
-    private ChatMemberDto MapChatMemberDto(dynamic row)
+    private static DirectChatDto MapDirectChatDto(IEnumerable<dynamic> rows)
+    {
+        var firstRow = rows.First();
+        var result = new DirectChatDto
+        {
+            Id = firstRow.id,
+            CreatedBy = firstRow.created_by,
+            CreatedAt = firstRow.created_at,
+            UpdatedAt = firstRow.updated_at
+        };
+        result.Members = rows.Select(row => new ChatMemberDto
+        {
+            Id = row.member_id,
+            UserId = row.user_id,
+            DisplayName = row.display_name,
+            JoinedAt = row.joined_at,
+            UpdatedAt = row.updated_at,
+            Role = Enum.Parse<ChatMemberRole>(row.role, true),
+            IsMuted = row.is_muted,
+            IsBanned = row.is_banned
+        }).ToList();
+        return result;
+    }
+
+    private static ChatMemberDto MapChatMemberDto(dynamic row)
     {
         return new ChatMemberDto
         {
@@ -199,41 +246,11 @@ public class ChatQueries(IDbConnectionFactory dbConnectionFactory) : IChatQuerie
             DisplayName = row.display_name,
             JoinedAt = row.joined_at,
             UpdatedAt = row.updated_at,
+            Id = row.id,
+            IsMuted = row.is_muted,
+            IsBanned = row.is_banned,
             Role = Enum.Parse<ChatMemberRole>(row.role, true)
         };
     }
-    private DirectChatDto MapDirectChatDto(dynamic result)
-    {
-        return new DirectChatDto
-        {
-            Id = result.id,
-            CreatedBy = result.created_by,
-            CreatedAt = result.created_at,
-            UpdatedAt = result.updated_at,
-            UserId = result.user_id
-        };
-    }
-    private ChatDto MapChatDto(dynamic result)
-    {
-        var dto = new ChatDto
-        {
-            Id = result.id,
-            Type = Enum.Parse<ChatType>(result.type, true),
-            CreatedAt = result.created_at,
-            UpdatedAt = result.updated_at,
-            CreatedBy = result.created_by
-        };
-        if (dto.Type != ChatType.Direct)
-        {
-            dto.GroupInfo = new ChatGroupInfoDto
-            {
-                Name = result.name,
-                AvatarFileId = result.avatar_file_id,
-                Description = result.description,
-                IsPublic = result.is_public,
-                UserName = result.user_name
-            };
-        }
-        return dto;
-    }
+    #endregion
 }

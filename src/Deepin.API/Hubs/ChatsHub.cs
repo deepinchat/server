@@ -43,4 +43,43 @@ public class ChatsHub(IChatQueries chatQueries) : Hub
         }
         await base.OnDisconnectedAsync(exception);
     }
+
+    /// <summary>
+    /// 标记消息为已读
+    /// </summary>
+    public async Task MarkAsRead(Guid chatId, Guid messageId)
+    {
+        if (!UserId.HasValue) return;
+
+        // 通知该聊天的其他成员，某用户已读了消息
+        await Clients.GroupExcept(chatId.ToString(), Context.ConnectionId)
+            .SendAsync("UserReadMessage", new { 
+                ChatId = chatId, 
+                UserId = UserId.Value, 
+                MessageId = messageId,
+                ReadAt = DateTimeOffset.UtcNow 
+            });
+    }
+
+    /// <summary>
+    /// 用户开始输入
+    /// </summary>
+    public async Task StartTyping(Guid chatId)
+    {
+        if (!UserId.HasValue) return;
+
+        await Clients.GroupExcept(chatId.ToString(), Context.ConnectionId)
+            .SendAsync("UserStartTyping", new { ChatId = chatId, UserId = UserId.Value });
+    }
+
+    /// <summary>
+    /// 用户停止输入
+    /// </summary>
+    public async Task StopTyping(Guid chatId)
+    {
+        if (!UserId.HasValue) return;
+
+        await Clients.GroupExcept(chatId.ToString(), Context.ConnectionId)
+            .SendAsync("UserStopTyping", new { ChatId = chatId, UserId = UserId.Value });
+    }
 }

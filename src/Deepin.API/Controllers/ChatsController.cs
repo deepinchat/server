@@ -62,27 +62,27 @@ namespace Deepin.API.Controllers
             }, cancellationToken);
             return Ok(chat);
         }
-        [HttpPost]
-        public async Task<ActionResult<ChatDto>> Create([FromBody] CreateChatRequest request, CancellationToken cancellationToken = default)
-        {
-            var chat = await _mediator.Send(new CreateChatCommand
-            {
-                OwnerId = _userContext.UserId,
-                Name = request.Name,
-                UserName = request.UserName,
-                Description = request.Description,
-                AvatarFileId = request.AvatarFileId,
-                IsPublic = request.IsPublic,
-                Type = request.Type
-            }, cancellationToken);
-            return CreatedAtAction(nameof(Get), new { id = chat.Id }, chat);
-        }
-        [HttpPost("direct")]
-        public async Task<ActionResult<ChatDto>> CreateDirectChat([FromBody] Guid[] users, CancellationToken cancellationToken = default)
-        {
-            var chat = await _mediator.Send(new CreateDirectChatCommand(_userContext.UserId, Others: users), cancellationToken);
-            return CreatedAtAction(nameof(Get), new { id = chat.Id }, chat);
-        }
+        // [HttpPost]
+        // public async Task<ActionResult<ChatDto>> Create([FromBody] CreateChatRequest request, CancellationToken cancellationToken = default)
+        // {
+        //     var chat = await _mediator.Send(new CreateChatCommand
+        //     {
+        //         OwnerId = _userContext.UserId,
+        //         Name = request.Name,
+        //         UserName = request.UserName,
+        //         Description = request.Description,
+        //         AvatarFileId = request.AvatarFileId,
+        //         IsPublic = request.IsPublic,
+        //         Type = request.Type
+        //     }, cancellationToken);
+        //     return CreatedAtAction(nameof(Get), new { id = chat.Id }, chat);
+        // }
+        // [HttpPost("direct")]
+        // public async Task<ActionResult<ChatDto>> CreateDirectChat([FromBody] Guid[] users, CancellationToken cancellationToken = default)
+        // {
+        //     var chat = await _mediator.Send(new CreateDirectChatCommand(_userContext.UserId, Others: users), cancellationToken);
+        //     return CreatedAtAction(nameof(Get), new { id = chat.Id }, chat);
+        // }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken = default)
