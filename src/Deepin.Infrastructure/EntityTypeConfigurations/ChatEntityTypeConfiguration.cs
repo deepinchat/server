@@ -24,9 +24,10 @@ public class ChatBaseEntityTypeConfiguration : IEntityTypeConfiguration<ChatBase
         builder.Property(x => x.IsDeleted).HasColumnName("is_deleted");
         builder.Property(x => x.IsActive).HasColumnName("is_active").HasDefaultValue(true);
 
-        builder.HasMany(x => x.Members).WithOne().HasForeignKey("chat_id").OnDelete(DeleteBehavior.Cascade);
-        builder.HasMany(x => x.Settings).WithOne().HasForeignKey("chat_id").OnDelete(DeleteBehavior.Cascade);
-        builder.HasMany(x => x.ReadStatuses).WithOne().HasForeignKey("chat_id").OnDelete(DeleteBehavior.Cascade);
+        builder.HasMany(x => x.Members).WithOne().HasForeignKey(x => x.ChatId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasMany(x => x.Settings).WithOne().HasForeignKey(x => x.ChatId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasMany(x => x.ReadStatuses).WithOne().HasForeignKey(x => x.ChatId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasMany(x => x.Messages).WithOne().HasForeignKey(x => x.ChatId).OnDelete(DeleteBehavior.Cascade);
     }
 }
 public class GroupChatEntityTypeConfiguration : IEntityTypeConfiguration<GroupChat>

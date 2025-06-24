@@ -9,12 +9,12 @@ namespace Deepin.Application.Commands.Chats;
 public record UpdateGroupChatCommand(
     Guid Id,
     string Name,
-    string UserName,
-    string Description,
+    string? UserName,
+    string? Description,
     Guid? AvatarFileId,
     bool IsPublic) : IRequest<GroupChatDto>;
 
-public class UpdateGroupChatCommandHandler(IMapper mapper,IGroupChatRepository groupChatRepository) : IRequestHandler<UpdateGroupChatCommand, GroupChatDto>
+public class UpdateGroupChatCommandHandler(IMapper mapper, IGroupChatRepository groupChatRepository) : IRequestHandler<UpdateGroupChatCommand, GroupChatDto>
 {
     public async Task<GroupChatDto> Handle(UpdateGroupChatCommand request, CancellationToken cancellationToken)
     {

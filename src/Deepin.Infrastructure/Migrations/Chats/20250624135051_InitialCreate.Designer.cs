@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Deepin.Infrastructure.Migrations.Chats
 {
     [DbContext(typeof(ChatDbContext))]
-    [Migration("20250621151906_InitialCreate")]
+    [Migration("20250624135051_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -121,6 +121,10 @@ namespace Deepin.Infrastructure.Migrations.Chats
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<Guid>("ChatId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("chat_id");
+
                     b.Property<string>("DisplayName")
                         .HasColumnType("text")
                         .HasColumnName("display_name");
@@ -154,14 +158,53 @@ namespace Deepin.Infrastructure.Migrations.Chats
                         .HasColumnType("uuid")
                         .HasColumnName("user_id");
 
-                    b.Property<Guid>("chat_id")
-                        .HasColumnType("uuid");
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChatId");
+
+                    b.ToTable("chat_members", "chats");
+                });
+
+            modelBuilder.Entity("Deepin.Domain.ChatAggregate.ChatMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ChatId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("chat_id");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_deleted");
+
+                    b.Property<Guid>("MessageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("message_id");
+
+                    b.Property<Guid?>("SenderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("sender_id");
+
+                    b.Property<DateTimeOffset>("SentAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("sent_at");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("type");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("chat_id");
+                    b.HasIndex("ChatId", "MessageId")
+                        .IsUnique();
 
-                    b.ToTable("chat_members", "chats");
+                    b.ToTable("chat_messages", "chats");
                 });
 
             modelBuilder.Entity("Deepin.Domain.ChatAggregate.ChatReadStatus", b =>
@@ -171,6 +214,10 @@ namespace Deepin.Infrastructure.Migrations.Chats
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<Guid>("ChatId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("chat_id");
+
                     b.Property<DateTimeOffset>("LastReadAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_read_at");
@@ -179,22 +226,13 @@ namespace Deepin.Infrastructure.Migrations.Chats
                         .HasColumnType("uuid")
                         .HasColumnName("last_read_message_id");
 
-                    b.Property<int>("UnreadCount")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(0)
-                        .HasColumnName("unread_count");
-
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid")
                         .HasColumnName("user_id");
 
-                    b.Property<Guid>("chat_id")
-                        .HasColumnType("uuid");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("chat_id");
+                    b.HasIndex("ChatId");
 
                     b.ToTable("chat_read_statuses", "chats");
                 });
@@ -205,6 +243,10 @@ namespace Deepin.Infrastructure.Migrations.Chats
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
+
+                    b.Property<Guid>("ChatId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("chat_id");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -237,12 +279,9 @@ namespace Deepin.Infrastructure.Migrations.Chats
                         .HasColumnType("uuid")
                         .HasColumnName("user_id");
 
-                    b.Property<Guid>("chat_id")
-                        .HasColumnType("uuid");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("chat_id");
+                    b.HasIndex("ChatId");
 
                     b.ToTable("chat_settings", "chats");
                 });
@@ -285,7 +324,16 @@ namespace Deepin.Infrastructure.Migrations.Chats
                 {
                     b.HasOne("Deepin.Domain.ChatAggregate.ChatBase", null)
                         .WithMany("Members")
-                        .HasForeignKey("chat_id")
+                        .HasForeignKey("ChatId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Deepin.Domain.ChatAggregate.ChatMessage", b =>
+                {
+                    b.HasOne("Deepin.Domain.ChatAggregate.ChatBase", null)
+                        .WithMany("Messages")
+                        .HasForeignKey("ChatId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -294,7 +342,7 @@ namespace Deepin.Infrastructure.Migrations.Chats
                 {
                     b.HasOne("Deepin.Domain.ChatAggregate.ChatBase", null)
                         .WithMany("ReadStatuses")
-                        .HasForeignKey("chat_id")
+                        .HasForeignKey("ChatId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -303,7 +351,7 @@ namespace Deepin.Infrastructure.Migrations.Chats
                 {
                     b.HasOne("Deepin.Domain.ChatAggregate.ChatBase", null)
                         .WithMany("Settings")
-                        .HasForeignKey("chat_id")
+                        .HasForeignKey("ChatId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -311,6 +359,8 @@ namespace Deepin.Infrastructure.Migrations.Chats
             modelBuilder.Entity("Deepin.Domain.ChatAggregate.ChatBase", b =>
                 {
                     b.Navigation("Members");
+
+                    b.Navigation("Messages");
 
                     b.Navigation("ReadStatuses");
 

@@ -6,9 +6,7 @@ public class ChatReadStatus : Entity<Guid>
     public Guid UserId { get; private set; }
     public Guid? LastReadMessageId { get; private set; }
     public DateTimeOffset LastReadAt { get; private set; }
-    public int UnreadCount { get; private set; }
     public ChatReadStatus() { }
-
     public ChatReadStatus(Guid userId, Guid? messageId = null) : this()
     {
         UserId = userId;
@@ -25,16 +23,5 @@ public class ChatReadStatus : Entity<Guid>
     {
         LastReadMessageId = messageId;
         LastReadAt = DateTimeOffset.UtcNow;
-        ResetUnreadCount();
-    }
-
-    public void IncrementUnreadCount()
-    {
-        UnreadCount++;
-    }
-
-    public void ResetUnreadCount()
-    {
-        UnreadCount = 0;
     }
 }

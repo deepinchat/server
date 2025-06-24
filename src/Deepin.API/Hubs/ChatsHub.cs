@@ -27,7 +27,7 @@ public class ChatsHub(IChatQueries chatQueries) : Hub
     }
     public override async Task OnConnectedAsync()
     {
-        var chats = await _chatQueries.GetChats(UserId ?? throw new ArgumentNullException(nameof(UserId)));
+        var chats = await _chatQueries.GetGroupChatsAsync(UserId ?? throw new ArgumentNullException(nameof(UserId)));
         foreach (var chat in chats)
         {
             await Groups.AddToGroupAsync(Context.ConnectionId, chat.Id.ToString());
@@ -36,7 +36,7 @@ public class ChatsHub(IChatQueries chatQueries) : Hub
     }
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
-        var chats = await _chatQueries.GetChats(UserId ?? throw new ArgumentNullException(nameof(UserId)));
+        var chats = await _chatQueries.GetGroupChatsAsync(UserId ?? throw new ArgumentNullException(nameof(UserId)));
         foreach (var chat in chats)
         {
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, chat.Id.ToString());

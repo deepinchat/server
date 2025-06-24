@@ -29,6 +29,7 @@ public class ChatDbContext : DbContextBase<ChatDbContext>
         modelBuilder.ApplyConfiguration(new ChatMemberEntityTypeConfiguration());
         modelBuilder.ApplyConfiguration(new ChatReadStatusEntityTypeConfiguration());
         modelBuilder.ApplyConfiguration(new ChatSettingsEntityTypeConfiguration());
+        modelBuilder.ApplyConfiguration(new ChatMessageEntityTypeConfiguration());
     }
 }
 

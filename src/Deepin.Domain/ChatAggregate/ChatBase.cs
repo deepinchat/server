@@ -5,6 +5,7 @@ public abstract class ChatBase : Entity<Guid>, IAggregateRoot
     private List<ChatMember> _members = [];
     private List<ChatSettings> _settings = [];
     private List<ChatReadStatus> _readStatuses = [];
+    private List<ChatMessage> _messages = [];
     public Guid CreatedBy { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
@@ -13,6 +14,7 @@ public abstract class ChatBase : Entity<Guid>, IAggregateRoot
     public IReadOnlyCollection<ChatMember> Members => _members;
     public IReadOnlyCollection<ChatSettings> Settings => _settings;
     public IReadOnlyCollection<ChatReadStatus> ReadStatuses => _readStatuses;
+    public IReadOnlyCollection<ChatMessage> Messages => _messages;
     protected ChatBase() { }
     public ChatBase(Guid createdBy)
     {

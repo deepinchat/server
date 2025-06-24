@@ -27,3 +27,15 @@ public enum ChatJoinRequestStatus
     Rejected,
     Cancelled
 }
+public enum ChatMessageType
+{
+    Text,
+    Image,
+    Video,
+    File,
+    Poll,
+    Location,
+    Link,
+    System,
+    Custom
+}

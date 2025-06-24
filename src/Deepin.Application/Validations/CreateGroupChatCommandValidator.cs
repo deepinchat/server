@@ -3,9 +3,9 @@ using FluentValidation;
 
 namespace Deepin.Application.Validations.Chats;
 
-public class CreateChatCommandValidator : AbstractValidator<CreateChatCommand>
+public class CreateGroupChatCommandValidator : AbstractValidator<CreateGroupChatCommand>
 {
-    public CreateChatCommandValidator()
+    public CreateGroupChatCommandValidator()
     {
         RuleFor(x => x.Name).NotEmpty().WithMessage("Name is required");
     }

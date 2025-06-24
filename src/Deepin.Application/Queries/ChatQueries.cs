@@ -14,9 +14,11 @@ public interface IChatQueries
     Task<GroupChatDto?> GetGroupChatByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<IEnumerable<DirectChatDto>> GetDirectChatsAsync(Guid userId, CancellationToken cancellationToken = default);
     Task<IEnumerable<GroupChatDto>> GetGroupChatsAsync(Guid userId, CancellationToken cancellationToken = default);
-
+    Task<ChatMemberDto?> GetChatMember(Guid chatMemberId, CancellationToken cancellationToken = default);
     Task<ChatMemberDto?> GetChatMember(Guid chatId, Guid userId, CancellationToken cancellationToken = default);
     Task<IPagedResult<ChatMemberDto>> GetChatMembers(Guid chatId, int offset, int limit, CancellationToken cancellationToken = default);
+    Task<IEnumerable<ChatUnreadCount>> GetChatUnreadCountsAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<ChatUnreadCount> GetChatUnreadCountAsync(Guid chatId, Guid userId, CancellationToken cancellationToken = default);
 }
 
 public class ChatQueries(IDbConnectionFactory dbConnectionFactory) : IChatQueries
@@ -154,6 +156,16 @@ public class ChatQueries(IDbConnectionFactory dbConnectionFactory) : IChatQuerie
             return result.Select(MapGroupChatDto).ToList();
         }
     }
+    public async Task<ChatMemberDto?> GetChatMember(Guid chatMemberId, CancellationToken cancellationToken = default)
+    {
+        using (var connection = await _dbConnectionFactory.CreateChatDbConnectionAsync(cancellationToken))
+        {
+            var sql = @"SELECT * FROM chat_members WHERE id=@id";
+            var command = new CommandDefinition(sql, new { id = chatMemberId }, cancellationToken: cancellationToken);
+            var row = await connection.QueryFirstOrDefaultAsync<dynamic>(command);
+            return row is not null ? MapChatMemberDto(row) : null;
+        }
+    }
     public async Task<ChatMemberDto?> GetChatMember(Guid chatId, Guid userId, CancellationToken cancellationToken = default)
     {
         using (var connection = await _dbConnectionFactory.CreateChatDbConnectionAsync(cancellationToken))
@@ -164,7 +176,6 @@ public class ChatQueries(IDbConnectionFactory dbConnectionFactory) : IChatQuerie
             return row is not null ? MapChatMemberDto(row) : null;
         }
     }
-
     public async Task<IPagedResult<ChatMemberDto>> GetChatMembers(Guid chatId, int offset, int limit, CancellationToken cancellationToken = default)
     {
         using (var connection = await _dbConnectionFactory.CreateChatDbConnectionAsync(cancellationToken))
@@ -176,6 +187,10 @@ public class ChatQueries(IDbConnectionFactory dbConnectionFactory) : IChatQuerie
             var queryCommand = new CommandDefinition(query, new { chatId, offset, limit }, cancellationToken: cancellationToken);
 
             var count = await connection.ExecuteScalarAsync<int>(countCommand);
+            if (count == 0)
+            {
+                return new PagedResult<ChatMemberDto>(new List<ChatMemberDto>(), offset, limit, 0);
+            }
             var rows = await connection.QueryAsync<dynamic>(queryCommand);
             return new PagedResult<ChatMemberDto>(rows.Select(MapChatMemberDto).ToList(), offset, limit, count);
         }
@@ -196,7 +211,64 @@ public class ChatQueries(IDbConnectionFactory dbConnectionFactory) : IChatQuerie
         }
     }
 
+    public async Task<IEnumerable<ChatUnreadCount>> GetChatUnreadCountsAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        using var connection = await _dbConnectionFactory.CreateChatDbConnectionAsync(cancellationToken);
+        var sql = @"
+            SELECT 
+                m.chat_id,
+                COUNT(m.id) AS unread_count
+            FROM 
+                chat_messages m
+            LEFT JOIN
+                chat_read_statuses crs ON m.chat_id = crs.chat_id
+            WHERE 
+                crs.user_id = @userId 
+            AND 
+                m.is_deleted IS FALSE 
+            AND 
+                m.sent_at > crs.last_read_at
+            AND 
+                LOWER(m.type) != 'system'
+            GROUP BY m.chat_id";
+        var rows = await connection.QueryAsync<dynamic>(new CommandDefinition(sql, new { userId }, cancellationToken: cancellationToken));
+        return rows.Select(MapChatUnreadCount).ToList();
+    }
+
+    public async Task<ChatUnreadCount> GetChatUnreadCountAsync(Guid chatId, Guid userId, CancellationToken cancellationToken = default)
+    {
+        using var connection = await _dbConnectionFactory.CreateChatDbConnectionAsync(cancellationToken);
+        var sql = @"
+            SELECT 
+                m.chat_id,
+                COUNT(m.id) AS unread_count
+            FROM 
+                chat_messages m
+            LEFT JOIN
+                chat_read_statuses crs ON m.chat_id = crs.chat_id
+            WHERE 
+                crs.user_id = @userId 
+            AND 
+                m.is_deleted IS FALSE 
+            AND 
+                m.sent_at > crs.last_read_at
+            AND 
+                LOWER(m.type) != 'system'
+            AND 
+                m.chat_id = @chatId
+            GROUP BY m.chat_id";
+        var row = await connection.QueryFirstOrDefaultAsync<dynamic>(new CommandDefinition(sql, new { chatId, userId }, cancellationToken: cancellationToken));
+        return row is not null ? MapChatUnreadCount(row) : new ChatUnreadCount(chatId, 0);
+    }
+
     #region Map Methods
+    private static ChatUnreadCount MapChatUnreadCount(dynamic row)
+    {
+        return new ChatUnreadCount(
+            chatId: row.chat_id,
+            unreadCount: row.unread_count
+        );
+    }
     private static GroupChatDto MapGroupChatDto(dynamic result)
     {
         var dto = new GroupChatDto

@@ -16,73 +16,66 @@ namespace Deepin.API.Controllers
         private readonly IChatQueries _chatQueries = chatQueries;
         private readonly IUserContext _userContext = userContext;
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<ChatDto>> Get(Guid id, CancellationToken cancellationToken = default)
+        [HttpGet("direct/{id}")]
+        public async Task<ActionResult<DirectChatDto>> GetDirectChat(Guid id, CancellationToken cancellationToken = default)
         {
-            var chat = await _mediator.Send(new GetChatCommand(id), cancellationToken);
+            var chat = await _mediator.Send(new GetDirectChatCommand(id), cancellationToken);
             if (chat == null)
                 return NotFound();
             return Ok(chat);
         }
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<ChatDto>>> GetChats(CancellationToken cancellationToken = default)
-        {
-            var chats = await _mediator.Send(new GetChatsCommand(_userContext.UserId), cancellationToken);
-            return Ok(chats);
-        }
         [HttpGet("direct")]
-        public async Task<ActionResult<IEnumerable<ChatDto>>> GetDirectChats(CancellationToken cancellationToken = default)
+        public async Task<ActionResult<IEnumerable<DirectChatDto>>> GetDirectChats(CancellationToken cancellationToken = default)
         {
             var chats = await _mediator.Send(new GetDirectChatsCommand(_userContext.UserId), cancellationToken);
             return Ok(chats);
         }
-        [HttpGet("search")]
-        public async Task<ActionResult<IPagedResult<ChatDto>>> SearchChats([FromQuery] SearchChatRequest request, CancellationToken cancellationToken = default)
+        [HttpPost("direct")]
+        public async Task<ActionResult<DirectChatDto>> CreateDirectChat([FromBody] CreateDirectChatRequest request, CancellationToken cancellationToken = default)
         {
-            var result = await _chatQueries.SearchChats(
-                limit: request.Limit,
-                offset: request.Offset,
-                search: request.Search,
-                type: request.Type,
-                cancellationToken: cancellationToken);
-            return Ok(result);
+            var chat = await _mediator.Send(new CreateDirectChatCommand(request.UserId), cancellationToken);
+            return CreatedAtAction(nameof(GetDirectChat), new { id = chat.Id }, chat);
         }
-
-        [HttpPut("{id}")]
-        public async Task<ActionResult<ChatDto>> Update(Guid id, [FromBody] UpdateChatRequest request, CancellationToken cancellationToken = default)
+        [HttpGet("group/{id}")]
+        public async Task<ActionResult<GroupChatDto>> GetGroupChat(Guid id, CancellationToken cancellationToken = default)
         {
-            var chat = await _mediator.Send(new UpdateChatCommand()
-            {
-                Id = id,
-                Name = request.Name,
-                UserName = request.UserName,
-                Description = request.Description,
-                AvatarFileId = request.AvatarFileId,
-                IsPublic = request.IsPublic
-            }, cancellationToken);
+            var chat = await _mediator.Send(new GetGroupChatCommand(id), cancellationToken);
+            if (chat == null)
+                return NotFound();
             return Ok(chat);
         }
-        // [HttpPost]
-        // public async Task<ActionResult<ChatDto>> Create([FromBody] CreateChatRequest request, CancellationToken cancellationToken = default)
-        // {
-        //     var chat = await _mediator.Send(new CreateChatCommand
-        //     {
-        //         OwnerId = _userContext.UserId,
-        //         Name = request.Name,
-        //         UserName = request.UserName,
-        //         Description = request.Description,
-        //         AvatarFileId = request.AvatarFileId,
-        //         IsPublic = request.IsPublic,
-        //         Type = request.Type
-        //     }, cancellationToken);
-        //     return CreatedAtAction(nameof(Get), new { id = chat.Id }, chat);
-        // }
-        // [HttpPost("direct")]
-        // public async Task<ActionResult<ChatDto>> CreateDirectChat([FromBody] Guid[] users, CancellationToken cancellationToken = default)
-        // {
-        //     var chat = await _mediator.Send(new CreateDirectChatCommand(_userContext.UserId, Others: users), cancellationToken);
-        //     return CreatedAtAction(nameof(Get), new { id = chat.Id }, chat);
-        // }
+        [HttpPost("group")]
+        public async Task<ActionResult<GroupChatDto>> CreateGroupChat([FromBody] CreateGroupChatRequest request, CancellationToken cancellationToken = default)
+        {
+            var chat = await _mediator.Send(new CreateGroupChatCommand(
+                Name: request.Name,
+                UserName: request.UserName,
+                Description: request.Description,
+                AvatarFileId: request.AvatarFileId,
+                IsPublic: request.IsPublic
+            ), cancellationToken);
+            return CreatedAtAction(nameof(GetGroupChat), new { id = chat.Id }, chat);
+        }
+        [HttpGet("group")]
+        public async Task<ActionResult<IEnumerable<GroupChatDto>>> GetGroupChats(CancellationToken cancellationToken = default)
+        {
+            var chats = await _mediator.Send(new GetGroupChatsCommand(_userContext.UserId), cancellationToken);
+            return Ok(chats);
+        }
+
+        [HttpPut("group/{id}")]
+        public async Task<ActionResult<GroupChatDto>> UpdateGroupChat(Guid id, [FromBody] UpdateChatRequest request, CancellationToken cancellationToken = default)
+        {
+            var chat = await _mediator.Send(new UpdateGroupChatCommand(
+                Id: id,
+                Name: request.Name,
+                UserName: request.UserName,
+                Description: request.Description,
+                AvatarFileId: request.AvatarFileId,
+                IsPublic: request.IsPublic
+            ), cancellationToken);
+            return Ok(chat);
+        }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken = default)
@@ -108,29 +101,33 @@ namespace Deepin.API.Controllers
             await _mediator.Send(new LeaveChatCommand(id, _userContext.UserId), cancellationToken);
             return Ok();
         }
+        [HttpGet("{id}/members/{memberId}")]
+        public async Task<ActionResult<IPagedResult<ChatMemberDto>>> GetMember(Guid id, Guid memberId, CancellationToken cancellationToken = default)
+        {
+            var member = await _chatQueries.GetChatMember(id, memberId, cancellationToken);
+            if (member == null)
+                return NotFound();
+            return Ok(member);
+        }
         [HttpGet("{id}/members")]
         public async Task<ActionResult<IPagedResult<ChatMemberDto>>> GetMembers(Guid id, int offset = 0, int limit = 20, CancellationToken cancellationToken = default)
         {
             var members = await _chatQueries.GetChatMembers(id, offset, limit, cancellationToken);
             return Ok(members);
         }
-        [HttpGet("read-statuses")]
-        public async Task<ActionResult<IEnumerable<ChatReadStatusDto>>> GetReadStatuses(CancellationToken cancellationToken = default)
+        [HttpGet("{id}/unread-count")]
+        public async Task<ActionResult<ChatUnreadCount>> GetUnreadCount(Guid id, CancellationToken cancellationToken = default)
         {
-            var statuses = await _chatQueries.GetChatReadStatusesAsync(_userContext.UserId, cancellationToken);
-            return Ok(statuses);
+            var count = await _chatQueries.GetChatUnreadCountAsync(id, _userContext.UserId, cancellationToken);
+            if (count == null)
+                return NotFound();
+            return Ok(count);
         }
-        [HttpGet("{id}/read-status")]
-        public async Task<ActionResult<ChatReadStatusDto>> GetReadStatus(Guid id, CancellationToken cancellationToken = default)
+        [HttpGet("unread-counts")]
+        public async Task<ActionResult<IEnumerable<ChatUnreadCount>>> GetUnreadCounts(CancellationToken cancellationToken = default)
         {
-            var status = await _chatQueries.GetChatReadStatusAsync(id, _userContext.UserId, cancellationToken);
-            return Ok(status);
-        }
-        [HttpPost("{id}/read-status")]
-        public async Task<IActionResult> UpdateReadStatus(Guid id, [FromBody] UpdateChatReadStatusRequest request, CancellationToken cancellationToken = default)
-        {
-            await _mediator.Send(new UpdateChatReadStatusCommand(id, _userContext.UserId, request.MessageId), cancellationToken);
-            return Ok();
+            var counts = await _chatQueries.GetChatUnreadCountsAsync(_userContext.UserId, cancellationToken);
+            return Ok(counts);
         }
     }
 }

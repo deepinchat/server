@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -62,14 +63,14 @@ namespace Deepin.Infrastructure.Migrations.Chats
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
+                    chat_id = table.Column<Guid>(type: "uuid", nullable: false),
                     user_id = table.Column<Guid>(type: "uuid", nullable: false),
                     display_name = table.Column<string>(type: "text", nullable: true),
                     is_muted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     is_banned = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     role = table.Column<string>(type: "text", nullable: false),
                     joined_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    updated_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    chat_id = table.Column<Guid>(type: "uuid", nullable: false)
+                    updated_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -84,16 +85,40 @@ namespace Deepin.Infrastructure.Migrations.Chats
                 });
 
             migrationBuilder.CreateTable(
+                name: "chat_messages",
+                schema: "chats",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    chat_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    type = table.Column<string>(type: "text", nullable: false),
+                    message_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    sender_id = table.Column<Guid>(type: "uuid", nullable: true),
+                    sent_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    is_deleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_chat_messages", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_chat_messages_chats_chat_id",
+                        column: x => x.chat_id,
+                        principalSchema: "chats",
+                        principalTable: "chats",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "chat_read_statuses",
                 schema: "chats",
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
+                    chat_id = table.Column<Guid>(type: "uuid", nullable: false),
                     user_id = table.Column<Guid>(type: "uuid", nullable: false),
                     last_read_message_id = table.Column<Guid>(type: "uuid", nullable: true),
-                    last_read_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    unread_count = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
-                    chat_id = table.Column<Guid>(type: "uuid", nullable: false)
+                    last_read_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -113,13 +138,13 @@ namespace Deepin.Infrastructure.Migrations.Chats
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
+                    chat_id = table.Column<Guid>(type: "uuid", nullable: false),
                     user_id = table.Column<Guid>(type: "uuid", nullable: false),
                     is_pinned = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     is_muted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     notification_level = table.Column<string>(type: "text", nullable: false, defaultValue: "All"),
                     created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    updated_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    chat_id = table.Column<Guid>(type: "uuid", nullable: false)
+                    updated_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -147,6 +172,13 @@ namespace Deepin.Infrastructure.Migrations.Chats
                 column: "chat_id");
 
             migrationBuilder.CreateIndex(
+                name: "IX_chat_messages_chat_id_message_id",
+                schema: "chats",
+                table: "chat_messages",
+                columns: new[] { "chat_id", "message_id" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_chat_read_statuses_chat_id",
                 schema: "chats",
                 table: "chat_read_statuses",
@@ -168,6 +200,10 @@ namespace Deepin.Infrastructure.Migrations.Chats
 
             migrationBuilder.DropTable(
                 name: "chat_members",
+                schema: "chats");
+
+            migrationBuilder.DropTable(
+                name: "chat_messages",
                 schema: "chats");
 
             migrationBuilder.DropTable(
