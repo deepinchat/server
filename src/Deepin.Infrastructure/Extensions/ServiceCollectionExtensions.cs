@@ -134,6 +134,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IGroupChatRepository, GroupChatRepository>();
         services.AddScoped<IChatReadStatusRepository, ChatReadStatusRepository>();
         services.AddScoped<IChatSettingsRepository, ChatSettingsRepository>();
+        services.AddScoped<IChatMessageRepository, ChatMessageRepository>();
         return services;
     }
     public static IServiceCollection AddContactDbContext(this IServiceCollection services, string connectionString)

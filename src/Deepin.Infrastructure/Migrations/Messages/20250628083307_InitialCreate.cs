@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -21,12 +22,12 @@ namespace Deepin.Infrastructure.Migrations.Messages
                     id = table.Column<Guid>(type: "uuid", nullable: false),
                     type = table.Column<string>(type: "text", nullable: false),
                     chat_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    user_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    user_id = table.Column<Guid>(type: "uuid", nullable: true),
                     parent_id = table.Column<Guid>(type: "uuid", nullable: true),
                     reply_to_id = table.Column<Guid>(type: "uuid", nullable: true),
                     created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP AT TIME ZONE 'UTC'"),
                     updated_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP AT TIME ZONE 'UTC'"),
-                    text = table.Column<string>(type: "text", nullable: true),
+                    content = table.Column<string>(type: "text", nullable: true),
                     mentions = table.Column<string>(type: "jsonb", nullable: true),
                     metadata = table.Column<string>(type: "jsonb", nullable: true),
                     is_deleted = table.Column<bool>(type: "boolean", nullable: false),
@@ -76,14 +77,15 @@ namespace Deepin.Infrastructure.Migrations.Messages
                     message_id = table.Column<Guid>(type: "uuid", nullable: false),
                     user_id = table.Column<Guid>(type: "uuid", nullable: false),
                     emoji = table.Column<string>(type: "text", nullable: false),
-                    created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP AT TIME ZONE 'UTC'")
+                    created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP AT TIME ZONE 'UTC'"),
+                    message_id1 = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_message_reactions", x => x.id);
                     table.ForeignKey(
-                        name: "FK_message_reactions_messages_message_id",
-                        column: x => x.message_id,
+                        name: "FK_message_reactions_messages_message_id1",
+                        column: x => x.message_id1,
                         principalSchema: "messages",
                         principalTable: "messages",
                         principalColumn: "id",
@@ -104,10 +106,10 @@ namespace Deepin.Infrastructure.Migrations.Messages
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_messages_chat_id_created_at",
+                name: "IX_message_reactions_message_id1",
                 schema: "messages",
-                table: "messages",
-                columns: new[] { "chat_id", "created_at" });
+                table: "message_reactions",
+                column: "message_id1");
         }
 
         /// <inheritdoc />

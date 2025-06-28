@@ -1,44 +1,36 @@
-using Deepin.Application.IntegrationEvents;
-using Deepin.Application.Queries;
 using Deepin.API.Hubs;
+using Deepin.Application.Commands.Messages;
+using Deepin.Application.IntegrationEvents;
+using Deepin.Infrastructure.EventBus;
+using MassTransit;
+using MediatR;
 using Microsoft.AspNetCore.SignalR;
-using Deepin.Application.Interfaces;
 
-namespace Deepin.API.IntegrationEventHandling;
+namespace Deepin.Chatting.API.EventHandling;
 
 public class MessageSentIntegrationEventHandler(
-    IHubContext<ChatsHub> hubContext,
-    IChatQueries chatQueries) : IIntegrationEventHandler<PushMessageIntegrationEvent>
+    IMediator mediator,
+    ILogger<MessageSentIntegrationEventHandler> logger,
+    IHubContext<ChatsHub> chatsHub) : IntegrationEventHandler<MessageSentIntegrationEvent>(logger)
 {
-    public async Task HandleAsync(PushMessageIntegrationEvent @event, CancellationToken cancellationToken = default)
+
+    public override async Task HandleAsync(MessageSentIntegrationEvent @event, CancellationToken cancellationToken)
     {
-        // 获取聊天成员
-        var chatMembers = await chatQueries.GetChatMembers(@event.ChatId, 0, 1000, cancellationToken);
-
-        // // 为每个成员计算未读消息数量（排除发送者）
-        // foreach (var member in chatMembers.Items.Where(m => m.UserId != GetMessageSender(@event.MessageId)))
-        // {
-        //     var unreadCount = await unreadMessageQueries.GetUnreadMessageCountAsync(
-        //         @event.ChatId,
-        //         member.UserId,
-        //         cancellationToken);
-
-        //     // 发送未读数量更新到该用户
-        //     await hubContext.Clients.Group($"user-{member.UserId}")
-        //         .SendAsync("UnreadCountUpdated", new
-        //         {
-        //             ChatId = @event.ChatId,
-        //             UnreadCount = unreadCount,
-        //             MessageId = @event.MessageId
-        //         }, cancellationToken);
-        // }
-
-        // 发送新消息通知到聊天组
-        await hubContext.Clients.Group(@event.ChatId.ToString())
-            .SendAsync("NewMessage", new
-            {
-                ChatId = @event.ChatId,
-                MessageId = @event.MessageId
-            }, cancellationToken);
+        var message = await mediator.Send(new GetMessageCommand(@event.MessageId), cancellationToken);
+        if (message is null)
+        {
+            logger.LogWarning("Message with ID {MessageId} not found", @event.MessageId);
+            return;
+        }
+        await chatsHub.Clients
+              .Group(@event.ChatId.ToString())
+              .SendAsync("NewMessage", message, cancellationToken: cancellationToken)
+              .ContinueWith(task =>
+              {
+                  if (task.IsFaulted)
+                  {
+                      logger.LogError(task.Exception, "Error sending message to chat {ChatId}", @event.ChatId);
+                  }
+              }, cancellationToken);
     }
 }

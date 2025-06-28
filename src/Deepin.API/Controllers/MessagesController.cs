@@ -2,6 +2,7 @@ using Deepin.API.Models.Messages;
 using Deepin.Application.Commands.Messages;
 using Deepin.Application.DTOs;
 using Deepin.Application.DTOs.Messages;
+using Deepin.Application.Interfaces;
 using Deepin.Application.Queries;
 using Deepin.Application.Requests.Messages;
 using MediatR;
@@ -11,6 +12,7 @@ namespace Deepin.API.Controllers
 {
     public class MessagesController(
         IMediator mediator,
+        IUserContext userContext,
         IMessageQueries messageQueries) : ApiControllerBase
     {
         [HttpGet("{id:guid}")]
@@ -46,9 +48,9 @@ namespace Deepin.API.Controllers
             return Ok(result);
         }
         [HttpPost]
-        public async Task<ActionResult<MessageDto>> Send([FromBody] SendMessageRequest request, CancellationToken cancellationToken)
+        public async Task<ActionResult<MessageDto>> Send([FromBody] MessageRequest request, CancellationToken cancellationToken)
         {
-            var message = await mediator.Send(new SendMessageCommand(request), cancellationToken);
+            var message = await mediator.Send(new SendMessageCommand(request, userContext.UserId), cancellationToken);
             return CreatedAtAction(nameof(Get), new { id = message.Id }, message);
         }
         [HttpPost("lasts")]
@@ -60,21 +62,6 @@ namespace Deepin.API.Controllers
             }
             var lastMessages = await messageQueries.GetLastMessageIdsAsync(request.ChatIds.ToArray(), cancellationToken);
             return Ok(lastMessages);
-        }
-        [HttpGet("unread-count")]
-        public async Task<IActionResult> GetUnreadCount([FromQuery] GetUnreadMessageCountRequest request, CancellationToken cancellationToken = default)
-        {
-            var count = await messageQueries.GetUnreadCountAsync(request.ChatId, request.LastReadAt, cancellationToken);
-            if (count < 0)
-            {
-                return NotFound();
-            }
-            return Ok(new
-            {
-                UnreadCount = count,
-                request.ChatId,
-                request.LastReadAt
-            });
         }
     }
 }

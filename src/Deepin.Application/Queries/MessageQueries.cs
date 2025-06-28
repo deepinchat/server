@@ -14,30 +14,10 @@ public interface IMessageQueries
     Task<IPagedResult<MessageDto>> SearchMessagesAsync(int limit, int offset, string? search = null, Guid? chatId = null, Guid? userId = null, CancellationToken cancellationToken = default);
     Task<Guid?> GetLastIdAsync(Guid chatId, CancellationToken cancellationToken = default);
     Task<IEnumerable<LastMessageDto>> GetLastMessageIdsAsync(Guid[] chatIds, CancellationToken cancellationToken = default);
-    Task<int> GetUnreadCountAsync(Guid chatId, DateTimeOffset? lastReadAt = null, CancellationToken cancellationToken = default);
 }
 
 public class MessageQueries(IDbConnectionFactory dbConnectionFactory) : IMessageQueries
 {
-    public async Task<int> GetUnreadCountAsync(Guid chatId, DateTimeOffset? lastReadAt = null, CancellationToken cancellationToken = default)
-    {
-        using (var connection = await dbConnectionFactory.CreateMessageDbConnectionAsync(cancellationToken))
-        {
-            var sql = @"
-                SELECT 
-                    COUNT(*)
-                FROM 
-                    messages
-                WHERE 
-                    chat_id = @chatId AND NOT is_deleted";
-            if (lastReadAt.HasValue)
-            {
-                sql += " AND created_at > @lastReadAt";
-            }
-            var command = new CommandDefinition(sql, new { chatId, lastReadAt }, cancellationToken: cancellationToken);
-            return await connection.ExecuteScalarAsync<int>(command);
-        }
-    }
     public async Task<IEnumerable<LastMessageDto>> GetLastMessageIdsAsync(Guid[] chatIds, CancellationToken cancellationToken = default)
     {
         using (var connection = await dbConnectionFactory.CreateMessageDbConnectionAsync(cancellationToken))
@@ -73,7 +53,7 @@ public class MessageQueries(IDbConnectionFactory dbConnectionFactory) : IMessage
                 SELECT
                     m.id,
                     m.type,
-                    m.text,
+                    m.content,
                     m.created_at,
                     m.updated_at,
                     m.user_id,
@@ -121,7 +101,7 @@ public class MessageQueries(IDbConnectionFactory dbConnectionFactory) : IMessage
                 SELECT
                     m.id,
                     m.type,
-                    m.text,
+                    m.content,
                     m.created_at,
                     m.updated_at,
                     m.user_id,
@@ -158,7 +138,7 @@ public class MessageQueries(IDbConnectionFactory dbConnectionFactory) : IMessage
             }
             if (!string.IsNullOrWhiteSpace(search))
             {
-                condations.Add("m.text ILIKE @search");
+                condations.Add("m.content ILIKE @search");
             }
             if (condations.Any())
             {
@@ -190,7 +170,7 @@ public class MessageQueries(IDbConnectionFactory dbConnectionFactory) : IMessage
             UpdatedAt = message.updated_at,
             UserId = message.user_id,
             ChatId = message.chat_id,
-            Text = message.text,
+            Content = message.content,
             IsDeleted = message.is_deleted,
             IsRead = message.is_read,
             IsEdited = message.is_edited,

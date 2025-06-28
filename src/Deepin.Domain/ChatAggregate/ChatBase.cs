@@ -1,3 +1,5 @@
+using Deepin.Domain.Events;
+
 namespace Deepin.Domain.ChatAggregate;
 
 public abstract class ChatBase : Entity<Guid>, IAggregateRoot
@@ -23,6 +25,7 @@ public abstract class ChatBase : Entity<Guid>, IAggregateRoot
         IsActive = true;
         CreatedBy = createdBy;
         this.AddMember(createdBy, ChatMemberRole.Owner);
+        this.AddDomainEvent(new ChatCreatedDomainEvent(this));
     }
     public void AddMember(Guid userId, ChatMemberRole role = ChatMemberRole.Member, string? displayName = null)
     {

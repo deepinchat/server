@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Deepin.Infrastructure.Migrations.Messages
 {
     [DbContext(typeof(MessageDbContext))]
-    [Migration("20250518080844_InitialCreate")]
+    [Migration("20250628083307_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -36,6 +36,10 @@ namespace Deepin.Infrastructure.Migrations.Messages
                     b.Property<Guid>("ChatId")
                         .HasColumnType("uuid")
                         .HasColumnName("chat_id");
+
+                    b.Property<string>("Content")
+                        .HasColumnType("text")
+                        .HasColumnName("content");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -75,10 +79,6 @@ namespace Deepin.Infrastructure.Migrations.Messages
                         .HasColumnType("uuid")
                         .HasColumnName("reply_to_id");
 
-                    b.Property<string>("Text")
-                        .HasColumnType("text")
-                        .HasColumnName("text");
-
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasColumnType("text")
@@ -90,13 +90,11 @@ namespace Deepin.Infrastructure.Migrations.Messages
                         .HasColumnName("updated_at")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP AT TIME ZONE 'UTC'");
 
-                    b.Property<Guid>("UserId")
+                    b.Property<Guid?>("UserId")
                         .HasColumnType("uuid")
                         .HasColumnName("user_id");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ChatId", "CreatedAt");
 
                     b.ToTable("messages", "messages");
                 });
@@ -179,12 +177,21 @@ namespace Deepin.Infrastructure.Migrations.Messages
                         .HasColumnType("uuid")
                         .HasColumnName("user_id");
 
+                    b.Property<Guid>("message_id")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("message_id");
 
                     b.HasIndex("MessageId", "UserId")
                         .IsUnique();
 
-                    b.ToTable("message_reactions", "messages");
+                    b.ToTable("message_reactions", "messages", t =>
+                        {
+                            t.Property("message_id")
+                                .HasColumnName("message_id1");
+                        });
                 });
 
             modelBuilder.Entity("Deepin.Domain.MessageAggregate.MessageAttachment", b =>
@@ -199,7 +206,7 @@ namespace Deepin.Infrastructure.Migrations.Messages
                 {
                     b.HasOne("Deepin.Domain.MessageAggregate.Message", null)
                         .WithMany()
-                        .HasForeignKey("MessageId")
+                        .HasForeignKey("message_id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

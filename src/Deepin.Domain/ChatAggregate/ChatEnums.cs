@@ -32,10 +32,12 @@ public enum ChatMessageType
     Text,
     Image,
     Video,
+    Audio,
+    Document,
     File,
-    Poll,
     Location,
-    Link,
-    System,
-    Custom
+    Sticker,
+    Contact,
+    Poll,
+    System
 }

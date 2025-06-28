@@ -14,3 +14,18 @@ public enum MessageType
     Poll,
     System
 }
+
+public enum MentionType
+{
+    User,
+    All
+}
+
+public enum AttachmentType
+{
+    Image,
+    Video,
+    Audio,
+    Document,
+    File
+}
