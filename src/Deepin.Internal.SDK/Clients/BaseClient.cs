@@ -67,17 +67,14 @@ public abstract class BaseClient
             throw;
         }
     }
-
-    /// <summary>
-    /// Sends a POST request and returns the response
-    /// </summary>
-    protected async Task<T?> PostAsync<T>(string endpoint, object? content = null, CancellationToken cancellationToken = default)
+    protected async Task<HttpResponseMessage> PostAsync(string endpoint, object? content = null, CancellationToken cancellationToken = default)
     {
         try
         {
             Logger.LogDebug("Sending POST request to {Endpoint}", endpoint);
             var response = await HttpClient.PostAsJsonAsync(endpoint, content, JsonOptions, cancellationToken);
-            return await HandleResponse<T>(response);
+            response.EnsureSuccessStatusCode();
+            return response;
         }
         catch (Exception ex)
         {
@@ -85,17 +82,22 @@ public abstract class BaseClient
             throw;
         }
     }
-
     /// <summary>
-    /// Sends a PUT request and returns the response
+    /// Sends a POST request and returns the response
     /// </summary>
-    protected async Task<T?> PutAsync<T>(string endpoint, object? content = null, CancellationToken cancellationToken = default)
+    protected async Task<T?> PostAsync<T>(string endpoint, object? content = null, CancellationToken cancellationToken = default)
+    {
+        var response = await this.PostAsync(endpoint, content, cancellationToken);
+        return await HandleResponse<T>(response);
+    }
+    protected async Task<HttpResponseMessage> PutAsync(string endpoint, object? content = null, CancellationToken cancellationToken = default)
     {
         try
         {
             Logger.LogDebug("Sending PUT request to {Endpoint}", endpoint);
             var response = await HttpClient.PutAsJsonAsync(endpoint, content, JsonOptions, cancellationToken);
-            return await HandleResponse<T>(response);
+            response.EnsureSuccessStatusCode();
+            return response;
         }
         catch (Exception ex)
         {
@@ -103,23 +105,24 @@ public abstract class BaseClient
             throw;
         }
     }
+    /// <summary>
+    /// Sends a PUT request and returns the response
+    /// </summary>
+    protected async Task<T?> PutAsync<T>(string endpoint, object? content = null, CancellationToken cancellationToken = default)
+    {
+        var response = await this.PutAsync(endpoint, content, cancellationToken);
+        return await HandleResponse<T>(response);
+    }
 
     /// <summary>
     /// Sends a DELETE request and returns the response
     /// </summary>
-    protected async Task<T?> DeleteAsync<T>(string endpoint, CancellationToken cancellationToken = default)
+    protected async Task<HttpResponseMessage> DeleteAsync(string endpoint, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            Logger.LogDebug("Sending DELETE request to {Endpoint}", endpoint);
-            var response = await HttpClient.DeleteAsync(endpoint, cancellationToken);
-            return await HandleResponse<T>(response);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error occurred while sending DELETE request to {Endpoint}", endpoint);
-            throw;
-        }
+        Logger.LogDebug("Sending DELETE request to {Endpoint}", endpoint);
+        var response = await HttpClient.DeleteAsync(endpoint, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return response;
     }
 
     /// <summary>

@@ -1,9 +1,11 @@
+using Deepin.Internal.SDK.Enums;
+
 namespace Deepin.Internal.SDK.Models;
 
 /// <summary>
 /// Represents a message in the system
 /// </summary>
-public class Message
+public class MessageDto
 {
     public Guid Id { get; set; }
     public MessageType Type { get; set; }
@@ -19,33 +21,22 @@ public class Message
     public bool IsRead { get; set; }
     public bool IsEdited { get; set; }
     public bool IsPinned { get; set; }
-    public List<MessageAttachment> Attachments { get; set; } = [];
-    public IEnumerable<MessageMention> Mentions { get; set; } = [];
+    public List<MessageAttachmentDto> Attachments { get; set; } = [];
+    public IEnumerable<MessageMentionDto> Mentions { get; set; } = [];
 }
 
-/// <summary>
-/// Represents the type of message
-/// </summary>
-public enum MessageType
-{
-    Text = 0,
-    File = 1,
-    Image = 2,
-    System = 3
-}
-public class MessageAttachment : MessageAttachmentRequest
+public class MessageAttachmentDto : MessageAttachmentRequest
 {
     public Guid Id { get; set; }
 }
-public class MessageMention : MessageMentionRequest
+public class MessageMentionDto : MessageMentionRequest
 {
 }
-
 
 /// <summary>
 /// Request model for sending a message
 /// </summary>
-public class SendMessageRequest
+public class MessageRequest
 {
     public string Content { get; set; } = string.Empty;
     public Guid ChatId { get; set; }
@@ -64,11 +55,6 @@ public class MessageMentionRequest
     public int StartIndex { get; set; }
     public int EndIndex { get; set; }
 }
-public enum MentionType
-{
-    User,
-    All
-}
 
 public class MessageAttachmentRequest
 {
@@ -80,14 +66,6 @@ public class MessageAttachmentRequest
     public string ContentType { get; set; } = string.Empty;
     public Guid? ThumbnailFileId { get; set; }
     public object? Metadata { get; set; }
-}
-public enum AttachmentType
-{
-    Image,
-    Video,
-    Audio,
-    Document,
-    File
 }
 /// <summary>
 /// Request model for searching messages
@@ -108,18 +86,7 @@ public class GetLastMessagesRequest
 {
     public List<int> ChatIds { get; set; } = new();
 }
-public class GetUnreadMessageCountRequest
+public class BatchGetMessageRequest
 {
-    public Guid ChatId { get; set; }
-    public DateTimeOffset? LastReadAt { get; set; }
-}
-
-/// <summary>
-/// Chat unread message count response model
-/// </summary>
-public class ChatMessageUnreadCount
-{
-    public Guid ChatId { get; set; }
-    public int UnreadCount { get; set; }
-    public DateTimeOffset LastReadAt { get; set; }
+    public List<Guid> Ids { get; set; } = new();
 }

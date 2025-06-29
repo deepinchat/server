@@ -8,7 +8,7 @@ public class PagedQuery
 
     public string? OrderBy { get; set; }
 
-    public string? OrderByDesc { get; set; }
+    public string? SortKey { get; set; }
 
     public string? Filter { get; set; }
 

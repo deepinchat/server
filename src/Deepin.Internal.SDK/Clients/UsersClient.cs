@@ -10,9 +10,9 @@ namespace Deepin.Internal.SDK.Clients;
 /// </summary>
 public interface IUsersClient
 {
-    Task<User?> GetUserAsync(Guid id, CancellationToken cancellationToken = default);
-    Task<List<User>> GetUsersByIdsAsync(Guid[] ids, CancellationToken cancellationToken = default);
-    Task<List<User>> SearchUsersAsync(SearchUsersRequest request, CancellationToken cancellationToken = default);
+    Task<UserDto?> GetUserAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<List<UserDto>> BatchGetUsersAsync(BatchGetUsersRequest request, CancellationToken cancellationToken = default);
+    Task<IPagedResult<UserDto>> SearchUsersAsync(SearchUsersRequest request, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -25,17 +25,17 @@ public class UsersClient : BaseClient, IUsersClient
     {
     }
 
-    public async Task<User?> GetUserAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<UserDto?> GetUserAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await GetAsync<User>($"api/v1/user/{id}", cancellationToken);
+        return await GetAsync<UserDto>($"api/v1/users/{id}", cancellationToken);
     }
 
-    public async Task<List<User>> GetUsersByIdsAsync(Guid[] ids, CancellationToken cancellationToken = default)
+    public async Task<List<UserDto>> BatchGetUsersAsync(BatchGetUsersRequest request, CancellationToken cancellationToken = default)
     {
-        return await PostAsync<List<User>>("api/v1/user/batch", ids, cancellationToken) ?? new List<User>();
+        return await PostAsync<List<UserDto>>("api/v1/users/batch", request, cancellationToken) ?? new List<UserDto>();
     }
 
-    public async Task<List<User>> SearchUsersAsync(SearchUsersRequest request, CancellationToken cancellationToken = default)
+    public async Task<IPagedResult<UserDto>> SearchUsersAsync(SearchUsersRequest request, CancellationToken cancellationToken = default)
     {
         var query = new Dictionary<string, object?>
         {
@@ -48,6 +48,8 @@ public class UsersClient : BaseClient, IUsersClient
         }
         var queryParams = BuildQueryString(query);
 
-        return await GetAsync<List<User>>($"api/v1/user/search{queryParams}", cancellationToken) ?? new List<User>();
+        var response = await GetAsync<IPagedResult<UserDto>>($"api/v1/users/search{queryParams}", cancellationToken);
+
+        return response ?? new PagedResult<UserDto>(new List<UserDto>(), 0, request.Offset, request.Limit);
     }
 }

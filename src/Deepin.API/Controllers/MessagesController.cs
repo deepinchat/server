@@ -26,17 +26,13 @@ namespace Deepin.API.Controllers
             return Ok(message);
         }
         [HttpPost("batch")]
-        public async Task<ActionResult<IEnumerable<MessageDto>>> GetMessagesByIds([FromBody] Guid[] ids, CancellationToken cancellationToken = default)
+        public async Task<ActionResult<IEnumerable<MessageDto>>> BatchGetMessages([FromBody] BatchGetMessageRequest request, CancellationToken cancellationToken = default)
         {
-            if (ids is null || ids.Length == 0)
-            {
-                return BadRequest("No message IDs provided.");
-            }
-            var result = await messageQueries.GetMessagesAsync(ids, cancellationToken: cancellationToken);
+            var result = await messageQueries.GetMessagesAsync(request.Ids, cancellationToken: cancellationToken);
             return Ok(result);
         }
         [HttpGet]
-        public async Task<ActionResult<IPagedResult<MessageDto>>> GetMessages([FromQuery] SearchMessageRequest request, CancellationToken cancellationToken)
+        public async Task<ActionResult<IPagedResult<MessageDto>>> Search([FromQuery] SearchMessageRequest request, CancellationToken cancellationToken)
         {
             var result = await messageQueries.SearchMessagesAsync(
                 limit: request.Limit,
@@ -54,7 +50,7 @@ namespace Deepin.API.Controllers
             return CreatedAtAction(nameof(Get), new { id = message.Id }, message);
         }
         [HttpPost("lasts")]
-        public async Task<ActionResult<IEnumerable<LastMessageDto>>> GetLastMessages([FromBody] GetLastMessagesRequest request, CancellationToken cancellationToken)
+        public async Task<ActionResult<IEnumerable<LastMessageDto>>> GetLasts([FromBody] GetLastMessagesRequest request, CancellationToken cancellationToken)
         {
             if (request is null || request.ChatIds is null || request.ChatIds.Count() == 0)
             {

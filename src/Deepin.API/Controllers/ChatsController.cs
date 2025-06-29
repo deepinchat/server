@@ -90,19 +90,19 @@ namespace Deepin.API.Controllers
         }
 
         [HttpPost("{id}/join")]
-        public async Task<IActionResult> JoinChat(Guid id, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> Join(Guid id, CancellationToken cancellationToken = default)
         {
             await _mediator.Send(new JoinChatCommand(id, _userContext.UserId), cancellationToken);
             return Ok();
         }
         [HttpPost("{id}/leave")]
-        public async Task<IActionResult> LeaveChat(Guid id, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> Leave(Guid id, CancellationToken cancellationToken = default)
         {
             await _mediator.Send(new LeaveChatCommand(id, _userContext.UserId), cancellationToken);
             return Ok();
         }
         [HttpGet("{id}/members/{memberId}")]
-        public async Task<ActionResult<IPagedResult<ChatMemberDto>>> GetMember(Guid id, Guid memberId, CancellationToken cancellationToken = default)
+        public async Task<ActionResult<ChatMemberDto>> GetMember(Guid id, Guid memberId, CancellationToken cancellationToken = default)
         {
             var member = await _chatQueries.GetChatMember(id, memberId, cancellationToken);
             if (member == null)
@@ -116,7 +116,7 @@ namespace Deepin.API.Controllers
             return Ok(members);
         }
         [HttpGet("{id}/unread-count")]
-        public async Task<ActionResult<ChatUnreadCount>> GetUnreadCount(Guid id, CancellationToken cancellationToken = default)
+        public async Task<ActionResult<ChatUnreadCountDto>> GetUnreadCount(Guid id, CancellationToken cancellationToken = default)
         {
             var count = await _chatQueries.GetChatUnreadCountAsync(id, _userContext.UserId, cancellationToken);
             if (count == null)
@@ -124,10 +124,16 @@ namespace Deepin.API.Controllers
             return Ok(count);
         }
         [HttpGet("unread-counts")]
-        public async Task<ActionResult<IEnumerable<ChatUnreadCount>>> GetUnreadCounts(CancellationToken cancellationToken = default)
+        public async Task<ActionResult<IEnumerable<ChatUnreadCountDto>>> GetUnreadCounts(CancellationToken cancellationToken = default)
         {
             var counts = await _chatQueries.GetChatUnreadCountsAsync(_userContext.UserId, cancellationToken);
             return Ok(counts);
+        }
+        [HttpGet("search")]
+        public async Task<ActionResult<IPagedResult<GroupChatDto>>> Search([FromQuery] string search, int offset = 0, int limit = 20, CancellationToken cancellationToken = default)
+        {
+            var chats = await _chatQueries.SearchGroupChatsAsync(search, offset, limit, cancellationToken);
+            return Ok(chats);
         }
     }
 }

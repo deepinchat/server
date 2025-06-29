@@ -11,8 +11,8 @@ namespace Deepin.Internal.SDK.Clients;
 public interface IFilesClient
 {
     Task<Stream?> DownloadFileAsync(Guid id, CancellationToken cancellationToken = default);
-    Task<FileInfoModel?> GetFileInfoAsync(Guid id, CancellationToken cancellationToken = default);
-    Task<FileInfoModel?> UploadFileAsync(FileUploadRequest request, CancellationToken cancellationToken = default);
+    Task<FileInfoDto?> GetFileInfoAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<FileInfoDto?> UploadFileAsync(UploadFileRequest request, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -28,9 +28,9 @@ public class FilesClient : BaseClient, IFilesClient
     /// <summary>
     /// Gets file information by ID
     /// </summary>
-    public async Task<FileInfoModel?> GetFileInfoAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<FileInfoDto?> GetFileInfoAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await GetAsync<FileInfoModel>($"api/v1/files/{id}", cancellationToken);
+        return await GetAsync<FileInfoDto>($"api/v1/files/{id}", cancellationToken);
     }
 
     /// <summary>
@@ -61,7 +61,7 @@ public class FilesClient : BaseClient, IFilesClient
     /// <summary>
     /// Uploads a file with specified parameters
     /// </summary>
-    public async Task<FileInfoModel?> UploadFileAsync(FileUploadRequest request, CancellationToken cancellationToken = default)
+    public async Task<FileInfoDto?> UploadFileAsync(UploadFileRequest request, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -84,7 +84,7 @@ public class FilesClient : BaseClient, IFilesClient
             }
 
             var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            return System.Text.Json.JsonSerializer.Deserialize<FileInfoModel>(responseContent, JsonOptions);
+            return System.Text.Json.JsonSerializer.Deserialize<FileInfoDto>(responseContent, JsonOptions);
         }
         catch (Exception ex)
         {

@@ -10,20 +10,19 @@ namespace Deepin.Internal.SDK.Clients;
 /// </summary>
 public interface IChatsClient
 {
-    Task<Chat?> CreateChatAsync(CreateChatRequest request, CancellationToken cancellationToken = default);
-    Task<Chat?> CreateDirectChatAsync(CreateDirectChatRequest request, CancellationToken cancellationToken = default);
+    Task<GroupChatDto?> CreateGroupChatAsync(CreateGroupChatRequest request, CancellationToken cancellationToken = default);
+    Task<GroupChatDto?> UpdateGroupChatAsync(Guid id, UpdateGroupChatRequest request, CancellationToken cancellationToken = default);
+    Task<DirectChatDto?> CreateDirectChatAsync(Guid targetUserId, CancellationToken cancellationToken = default);
     Task<bool> DeleteChatAsync(Guid id, CancellationToken cancellationToken = default);
-    Task<Chat?> GetChatAsync(Guid id, CancellationToken cancellationToken = default);
-    Task<IPagedResult<ChatMember>> GetChatMembersAsync(Guid id, int offset = 0, int limit = 20, CancellationToken cancellationToken = default);
-    Task<IEnumerable<Chat>> GetChatsAsync(CancellationToken cancellationToken = default);
-    Task<IEnumerable<DirectChat>> GetDirectChatsAsync(CancellationToken cancellationToken = default);
-    Task<ReadStatus?> GetReadStatusAsync(Guid id, CancellationToken cancellationToken = default);
-    Task<IEnumerable<ReadStatus>> GetReadStatusesAsync(CancellationToken cancellationToken = default);
+    Task<GroupChatDto?> GetGroupChatAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<DirectChatDto?> GetDirectChatAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<IPagedResult<ChatMemberDto>> GetChatMembersAsync(Guid id, int offset = 0, int limit = 20, CancellationToken cancellationToken = default);
+    Task<IEnumerable<GroupChatDto>> GetGroupChatsAsync(CancellationToken cancellationToken = default);
+    Task<IEnumerable<DirectChatDto>> GetDirectChatsAsync(CancellationToken cancellationToken = default);
+    Task<IEnumerable<ChatUnreadCountDto>> GetUnreadCounts(CancellationToken cancellationToken = default);
     Task<bool> JoinChatAsync(Guid id, CancellationToken cancellationToken = default);
     Task<bool> LeaveChatAsync(Guid id, CancellationToken cancellationToken = default);
-    Task<IPagedResult<Chat>> SearchChatsAsync(SearchChatRequest request, CancellationToken cancellationToken = default);
-    Task<Chat?> UpdateChatAsync(Guid id, UpdateChatRequest request, CancellationToken cancellationToken = default);
-    Task<bool> UpdateReadStatusAsync(Guid id, UpdateReadStatusRequest request, CancellationToken cancellationToken = default);
+    Task<IPagedResult<GroupChatDto>> SearchChatsAsync(SearchChatRequest request, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -36,113 +35,88 @@ public class ChatsClient : BaseClient, IChatsClient
     {
     }
 
-    public async Task<Chat?> GetChatAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<DirectChatDto?> CreateDirectChatAsync(Guid targetUserId, CancellationToken cancellationToken = default)
     {
-        return await GetAsync<Chat>($"api/v1/chats/{id}", cancellationToken);
-    }
-
-    public async Task<IEnumerable<Chat>> GetChatsAsync(CancellationToken cancellationToken = default)
-    {
-        return await GetAsync<List<Chat>>("api/v1/chats", cancellationToken) ?? new List<Chat>();
-    }
-
-    public async Task<IEnumerable<DirectChat>> GetDirectChatsAsync(CancellationToken cancellationToken = default)
-    {
-        return await GetAsync<List<DirectChat>>("api/v1/chats/direct", cancellationToken) ?? new List<DirectChat>();
-    }
-
-    public async Task<IPagedResult<Chat>> SearchChatsAsync(SearchChatRequest request, CancellationToken cancellationToken = default)
-    {
-        var queryParams = BuildQueryString(new Dictionary<string, object?>
+        return await PostAsync<DirectChatDto?>($"api/v1/chats/direct", new
         {
-            ["search"] = request.Search,
-            ["type"] = request.Type?.ToString(),
-            ["offset"] = request.Offset,
-            ["limit"] = request.Limit
-        });
-
-        return await GetAsync<IPagedResult<Chat>>($"api/v1/chats/search{queryParams}", cancellationToken) ?? new PagedResult<Chat>();
+            TargetUserId = targetUserId
+        }, cancellationToken);
     }
 
-    public async Task<Chat?> CreateChatAsync(CreateChatRequest request, CancellationToken cancellationToken = default)
+    public async Task<GroupChatDto?> CreateGroupChatAsync(CreateGroupChatRequest request, CancellationToken cancellationToken = default)
     {
-        return await PostAsync<Chat>("api/v1/chats", request, cancellationToken);
-    }
-
-    public async Task<Chat?> UpdateChatAsync(Guid id, UpdateChatRequest request, CancellationToken cancellationToken = default)
-    {
-        return await PutAsync<Chat>($"api/v1/chats/{id}", request, cancellationToken);
-    }
-
-    public async Task<Chat?> CreateDirectChatAsync(CreateDirectChatRequest request, CancellationToken cancellationToken = default)
-    {
-        return await PostAsync<Chat>("api/v1/chats/direct", request.UserIds, cancellationToken);
+        return await PostAsync<GroupChatDto?>($"api/v1/chats/group", request, cancellationToken);
     }
 
     public async Task<bool> DeleteChatAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            await DeleteAsync<object>($"api/v1/chats/{id}", cancellationToken);
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
+        await DeleteAsync($"api/v1/chats/{id}", cancellationToken);
+        return true;
+    }
+
+    public async Task<IPagedResult<ChatMemberDto>> GetChatMembersAsync(Guid id, int offset = 0, int limit = 20, CancellationToken cancellationToken = default)
+    {
+        var response = await GetAsync<IPagedResult<ChatMemberDto>>($"api/v1/chats/{id}/members?offset={offset}&limit={limit}", cancellationToken);
+        return response ?? new PagedResult<ChatMemberDto>(Array.Empty<ChatMemberDto>(), 0, offset, limit);
+    }
+
+    public async Task<DirectChatDto?> GetDirectChatAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var response = await GetAsync<DirectChatDto?>($"api/v1/chats/direct/{id}", cancellationToken);
+        return response;
+    }
+
+    public async Task<IEnumerable<DirectChatDto>> GetDirectChatsAsync(CancellationToken cancellationToken = default)
+    {
+        var response = await GetAsync<IEnumerable<DirectChatDto>>("api/v1/chats/direct", cancellationToken);
+        return response ?? Array.Empty<DirectChatDto>();
+    }
+
+    public async Task<GroupChatDto?> GetGroupChatAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var response = await GetAsync<GroupChatDto?>($"api/v1/chats/group/{id}", cancellationToken);
+        return response;
+    }
+
+    public async Task<IEnumerable<GroupChatDto>> GetGroupChatsAsync(CancellationToken cancellationToken = default)
+    {
+        var response = await GetAsync<IEnumerable<GroupChatDto>>("api/v1/chats/group", cancellationToken);
+        return response ?? Array.Empty<GroupChatDto>();
+    }
+
+    public async Task<IEnumerable<ChatUnreadCountDto>> GetUnreadCounts(CancellationToken cancellationToken = default)
+    {
+        var response = await GetAsync<IEnumerable<ChatUnreadCountDto>>("api/v1/chats/unread-counts", cancellationToken);
+        return response ?? Array.Empty<ChatUnreadCountDto>();
     }
 
     public async Task<bool> JoinChatAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            await PostAsync<object>($"api/v1/chats/{id}/join", null, cancellationToken);
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
+        var response = await PostAsync($"api/v1/chats/{id}/join", null, cancellationToken);
+        return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> LeaveChatAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            await PostAsync<object>($"api/v1/chats/{id}/leave", null, cancellationToken);
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
+        var response = await PostAsync($"api/v1/chats/{id}/leave", null, cancellationToken);
+        return response.IsSuccessStatusCode;
     }
 
-    public async Task<IPagedResult<ChatMember>> GetChatMembersAsync(Guid id, int offset = 0, int limit = 20, CancellationToken cancellationToken = default)
+    public async Task<IPagedResult<GroupChatDto>> SearchChatsAsync(SearchChatRequest request, CancellationToken cancellationToken = default)
     {
-        return await GetAsync<IPagedResult<ChatMember>>($"api/v1/chats/{id}/members?offset={offset}&limit={limit}", cancellationToken) ?? new PagedResult<ChatMember>();
-    }
-
-    public async Task<IEnumerable<ReadStatus>> GetReadStatusesAsync(CancellationToken cancellationToken = default)
-    {
-        return await GetAsync<List<ReadStatus>>("api/v1/chats/read-statuses", cancellationToken) ?? new List<ReadStatus>();
-    }
-
-    public async Task<ReadStatus?> GetReadStatusAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        return await GetAsync<ReadStatus>($"api/v1/chats/{id}/read-status", cancellationToken);
-    }
-
-    public async Task<bool> UpdateReadStatusAsync(Guid id, UpdateReadStatusRequest request, CancellationToken cancellationToken = default)
-    {
-        try
+        var query = new Dictionary<string, object?>
         {
-            await PostAsync<object>($"api/v1/chats/{id}/read-status", request, cancellationToken);
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
+            ["offset"] = request.Offset,
+            ["limit"] = request.Limit,
+            ["search"] = request.Search
+        };
+        var queryParams = BuildQueryString(query);
+        var response = await GetAsync<IPagedResult<GroupChatDto>>($"api/v1/chats/search{queryParams}", cancellationToken);
+        return response ?? new PagedResult<GroupChatDto>(Array.Empty<GroupChatDto>(), 0, request.Offset, request.Limit);
+    }
+
+    public async Task<GroupChatDto?> UpdateGroupChatAsync(Guid id, UpdateGroupChatRequest request, CancellationToken cancellationToken = default)
+    {
+        return await PutAsync<GroupChatDto?>($"api/v1/chats/group/{id}", request, cancellationToken);
     }
 }

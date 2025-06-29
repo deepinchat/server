@@ -3,7 +3,7 @@ namespace Deepin.Internal.SDK.Models;
 /// <summary>
 /// Represents a user in the system
 /// </summary>
-public class User
+public class UserDto
 {
     public Guid Id { get; set; }
     public string? UserName { get; set; }
@@ -14,11 +14,11 @@ public class User
     public bool PhoneNumberConfirmed { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
-    public IEnumerable<UserCliam>? Claims { get; set; }
+    public IEnumerable<UserCliamDto>? Claims { get; set; }
 }
-public class UserCliam
+public class UserCliamDto
 {
-    public int Id { get; set; }
+    public Guid Id { get; set; }
     public string? ClaimType { get; set; }
     public string? ClaimValue { get; set; }
 }
@@ -26,9 +26,9 @@ public class UserCliam
 /// <summary>
 /// Request model for getting users by IDs
 /// </summary>
-public class GetUsersByIdsRequest
+public class BatchGetUsersRequest
 {
-    public List<int> UserIds { get; set; } = new();
+    public List<Guid> Ids { get; set; } = new();
 }
 
 /// <summary>

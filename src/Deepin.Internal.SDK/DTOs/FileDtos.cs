@@ -1,9 +1,11 @@
+using Deepin.Internal.SDK.Enums;
+
 namespace Deepin.Internal.SDK.Models;
 
 /// <summary>
 /// Represents a file in the system
 /// </summary>
-public class FileInfoModel
+public class FileInfoDto
 {
     public Guid Id { get; set; }
     public string Name { get; set; } = string.Empty;
@@ -19,20 +21,10 @@ public class FileInfoModel
     public DateTimeOffset UpdatedAt { get; set; }
     public StorageProvider Provider { get; set; }
 }
-public enum StorageProvider
-{
-    Local,
-    AzureBlob,
-    AwsS3,
-    GoogleCloudStorage,
-    Aliyun,
-    TencentCloud,
-}
-
 /// <summary>
 /// Request model for file upload
 /// </summary>
-public class FileUploadRequest
+public class UploadFileRequest
 {
     public Stream FileStream { get; set; } = Stream.Null;
     public string FileName { get; set; } = string.Empty;

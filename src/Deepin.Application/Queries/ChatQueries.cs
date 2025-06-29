@@ -17,8 +17,9 @@ public interface IChatQueries
     Task<ChatMemberDto?> GetChatMember(Guid chatMemberId, CancellationToken cancellationToken = default);
     Task<ChatMemberDto?> GetChatMember(Guid chatId, Guid userId, CancellationToken cancellationToken = default);
     Task<IPagedResult<ChatMemberDto>> GetChatMembers(Guid chatId, int offset, int limit, CancellationToken cancellationToken = default);
-    Task<IEnumerable<ChatUnreadCount>> GetChatUnreadCountsAsync(Guid userId, CancellationToken cancellationToken = default);
-    Task<ChatUnreadCount> GetChatUnreadCountAsync(Guid chatId, Guid userId, CancellationToken cancellationToken = default);
+    Task<IEnumerable<ChatUnreadCountDto>> GetChatUnreadCountsAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<ChatUnreadCountDto> GetChatUnreadCountAsync(Guid chatId, Guid userId, CancellationToken cancellationToken = default);
+    Task<IPagedResult<GroupChatDto>> SearchGroupChatsAsync(string search, int offset = 0, int limit = 20, CancellationToken cancellationToken = default);
 }
 
 public class ChatQueries(IDbConnectionFactory dbConnectionFactory) : IChatQueries
@@ -54,7 +55,7 @@ public class ChatQueries(IDbConnectionFactory dbConnectionFactory) : IChatQuerie
                            c.id = @id";
             var command = new CommandDefinition(sql, new { id, }, cancellationToken: cancellationToken);
             var rows = await connection.QueryAsync<dynamic>(command);
-            return rows is null ? null : MapDirectChatDto(rows);
+            return rows is null || !rows.Any() ? null : MapDirectChatDto(rows);
         }
     }
 
@@ -211,7 +212,7 @@ public class ChatQueries(IDbConnectionFactory dbConnectionFactory) : IChatQuerie
         }
     }
 
-    public async Task<IEnumerable<ChatUnreadCount>> GetChatUnreadCountsAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<ChatUnreadCountDto>> GetChatUnreadCountsAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         using var connection = await _dbConnectionFactory.CreateChatDbConnectionAsync(cancellationToken);
         var sql = @"
@@ -235,7 +236,7 @@ public class ChatQueries(IDbConnectionFactory dbConnectionFactory) : IChatQuerie
         return rows.Select(MapChatUnreadCount).ToList();
     }
 
-    public async Task<ChatUnreadCount> GetChatUnreadCountAsync(Guid chatId, Guid userId, CancellationToken cancellationToken = default)
+    public async Task<ChatUnreadCountDto> GetChatUnreadCountAsync(Guid chatId, Guid userId, CancellationToken cancellationToken = default)
     {
         using var connection = await _dbConnectionFactory.CreateChatDbConnectionAsync(cancellationToken);
         var sql = @"
@@ -258,16 +259,61 @@ public class ChatQueries(IDbConnectionFactory dbConnectionFactory) : IChatQuerie
                 m.chat_id = @chatId
             GROUP BY m.chat_id";
         var row = await connection.QueryFirstOrDefaultAsync<dynamic>(new CommandDefinition(sql, new { chatId, userId }, cancellationToken: cancellationToken));
-        return row is not null ? MapChatUnreadCount(row) : new ChatUnreadCount(chatId, 0);
+        return row is not null ? MapChatUnreadCount(row) : new ChatUnreadCountDto()
+        {
+            ChatId = chatId
+        };
+    }
+
+
+    public async Task<IPagedResult<GroupChatDto>> SearchGroupChatsAsync(string search, int offset = 0, int limit = 20, CancellationToken cancellationToken = default)
+    {
+        var countQuery = @"
+            SELECT COUNT(*) 
+            FROM chats 
+            WHERE is_deleted IS FALSE 
+            AND is_public IS TRUE
+            AND type = 1 
+            AND (name ILIKE @search OR user_name ILIKE @search)";
+        var query = @"
+            SELECT 
+                id,
+                name,
+                is_public,
+                user_name,
+                description,
+                avatar_file_id,
+                created_by,
+                created_at, 
+                updated_at
+            FROM chats 
+            WHERE is_deleted IS FALSE 
+            AND is_public IS TRUE
+            AND type = 1 
+            AND (name ILIKE @search OR user_name ILIKE @search)
+            ORDER BY updated_at DESC 
+            OFFSET @offset LIMIT @limit";
+        using var connection = await _dbConnectionFactory.CreateChatDbConnectionAsync(cancellationToken);
+        var countCommand = new CommandDefinition(countQuery, new { search = $"%{search}%" }, cancellationToken: cancellationToken);
+        var totalCount = await connection.ExecuteScalarAsync<int>(countCommand);
+        if (totalCount == 0)
+        {
+            return new PagedResult<GroupChatDto>(new List<GroupChatDto>(), offset, limit, 0);
+        }
+        var queryCommand = new CommandDefinition(query, new { search = $"%{search}%", offset, limit }, cancellationToken: cancellationToken);
+        var rows = await connection.QueryAsync<dynamic>(queryCommand);
+        var groupChats = rows.Select(MapGroupChatDto).ToList();
+        return new PagedResult<GroupChatDto>(groupChats, offset, limit, totalCount);
     }
 
     #region Map Methods
-    private static ChatUnreadCount MapChatUnreadCount(dynamic row)
+    private static ChatUnreadCountDto MapChatUnreadCount(dynamic row)
     {
-        return new ChatUnreadCount(
-            chatId: row.chat_id,
-            unreadCount: row.unread_count
-        );
+        return new ChatUnreadCountDto
+        {
+            ChatId = row.chat_id,
+            UnreadCount = row.unread_count
+        };
     }
     private static GroupChatDto MapGroupChatDto(dynamic result)
     {

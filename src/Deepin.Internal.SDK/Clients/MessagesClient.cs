@@ -10,12 +10,11 @@ namespace Deepin.Internal.SDK.Clients;
 /// </summary>
 public interface IMessagesClient
 {
-    Task<List<Message>> GetLastMessagesAsync(GetLastMessagesRequest request, CancellationToken cancellationToken = default);
-    Task<Message?> GetMessageAsync(Guid id, CancellationToken cancellationToken = default);
-    Task<List<Message>> GetMessagesByIdsAsync(Guid[] ids, CancellationToken cancellationToken = default);
-    Task<ChatMessageUnreadCount?> GetUnreadCountAsync(GetUnreadMessageCountRequest request, CancellationToken cancellationToken = default);
-    Task<List<Message>> SearchMessagesAsync(SearchMessagesRequest request, CancellationToken cancellationToken = default);
-    Task<Message?> SendMessageAsync(SendMessageRequest request, CancellationToken cancellationToken = default);
+    Task<List<MessageDto>> GetLastMessagesAsync(GetLastMessagesRequest request, CancellationToken cancellationToken = default);
+    Task<MessageDto?> GetMessageAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<List<MessageDto>> BatchGetMessagesAsync(BatchGetMessageRequest request, CancellationToken cancellationToken = default);
+    Task<List<MessageDto>> SearchMessagesAsync(SearchMessagesRequest request, CancellationToken cancellationToken = default);
+    Task<MessageDto?> SendMessageAsync(MessageRequest request, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -28,17 +27,17 @@ public class MessagesClient : BaseClient, IMessagesClient
     {
     }
 
-    public async Task<Message?> GetMessageAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<MessageDto?> GetMessageAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await GetAsync<Message>($"api/v1/messages/{id}", cancellationToken);
+        return await GetAsync<MessageDto>($"api/v1/messages/{id}", cancellationToken);
     }
 
-    public async Task<List<Message>> GetMessagesByIdsAsync(Guid[] ids, CancellationToken cancellationToken = default)
+    public async Task<List<MessageDto>> BatchGetMessagesAsync(BatchGetMessageRequest request, CancellationToken cancellationToken = default)
     {
-        return await PostAsync<List<Message>>("api/v1/messages", ids, cancellationToken) ?? new List<Message>();
+        return await PostAsync<List<MessageDto>>("api/v1/messages/batch", request, cancellationToken) ?? new List<MessageDto>();
     }
 
-    public async Task<List<Message>> SearchMessagesAsync(SearchMessagesRequest request, CancellationToken cancellationToken = default)
+    public async Task<List<MessageDto>> SearchMessagesAsync(SearchMessagesRequest request, CancellationToken cancellationToken = default)
     {
         var query = new Dictionary<string, object?>
         {
@@ -59,28 +58,16 @@ public class MessagesClient : BaseClient, IMessagesClient
         }
         var queryParams = BuildQueryString(query);
 
-        return await GetAsync<List<Message>>($"api/v1/messages/search{queryParams}", cancellationToken) ?? new List<Message>();
+        return await GetAsync<List<MessageDto>>($"api/v1/messages/search{queryParams}", cancellationToken) ?? new List<MessageDto>();
     }
 
-    public async Task<Message?> SendMessageAsync(SendMessageRequest request, CancellationToken cancellationToken = default)
+    public async Task<MessageDto?> SendMessageAsync(MessageRequest request, CancellationToken cancellationToken = default)
     {
-        return await PostAsync<Message>("api/v1/messages", request, cancellationToken);
+        return await PostAsync<MessageDto>("api/v1/messages", request, cancellationToken);
     }
 
-    public async Task<List<Message>> GetLastMessagesAsync(GetLastMessagesRequest request, CancellationToken cancellationToken = default)
+    public async Task<List<MessageDto>> GetLastMessagesAsync(GetLastMessagesRequest request, CancellationToken cancellationToken = default)
     {
-        return await PostAsync<List<Message>>("api/v1/messages/lasts", request, cancellationToken) ?? new List<Message>();
-    }
-
-    public async Task<ChatMessageUnreadCount?> GetUnreadCountAsync(GetUnreadMessageCountRequest request, CancellationToken cancellationToken = default)
-    {
-        var query = new Dictionary<string, object?>
-        {
-            ["chatId"] = request.ChatId,
-            ["lastReadAt"] = request.LastReadAt?.ToString("o") // ISO 8601 format
-        };
-        var queryParams = BuildQueryString(query);
-
-        return await GetAsync<ChatMessageUnreadCount>($"api/v1/messages/unread-count{queryParams}", cancellationToken);
+        return await PostAsync<List<MessageDto>>("api/v1/messages/lasts", request, cancellationToken) ?? new List<MessageDto>();
     }
 }

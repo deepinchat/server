@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Deepin.API.Controllers
 {
-    public class UserController(IMediator mediator, IUserQueries userQueries) : ApiControllerBase
+    public class UsersController(IMediator mediator, IUserQueries userQueries) : ApiControllerBase
     {
         [HttpGet("{id:guid}")]
         [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
@@ -24,13 +24,9 @@ namespace Deepin.API.Controllers
         }
         [HttpPost("batch")]
         [ProducesResponseType(typeof(IEnumerable<UserDto>), StatusCodes.Status200OK)]
-        public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers([FromBody] Guid[] ids, CancellationToken cancellationToken = default)
+        public async Task<ActionResult<IEnumerable<UserDto>>> BatchGetUsers([FromBody] BatchGetUserRequest request, CancellationToken cancellationToken = default)
         {
-            if (ids == null || !ids.Any())
-            {
-                return BadRequest("No user IDs provided.");
-            }
-            var users = await userQueries.GetUsersAsync(ids, cancellationToken);
+            var users = await userQueries.GetUsersAsync(request.Ids, cancellationToken);
             if (users == null || !users.Any())
             {
                 return NotFound();
@@ -39,7 +35,7 @@ namespace Deepin.API.Controllers
         }
         [HttpGet("search")]
         [ProducesResponseType(typeof(IPagedResult<UserDto>), StatusCodes.Status200OK)]
-        public async Task<ActionResult<IPagedResult<UserDto>>> SearchUsers([FromQuery] SearchUserRequest request, CancellationToken cancellationToken = default)
+        public async Task<ActionResult<IPagedResult<UserDto>>> Search([FromQuery] SearchUserRequest request, CancellationToken cancellationToken = default)
         {
             var result = await userQueries.SearchUsersAsync(request.Limit, request.Offset, request.Search, cancellationToken);
             return Ok(result);
