@@ -13,7 +13,7 @@ public interface IMessagesClient
     Task<List<MessageDto>> GetLastMessagesAsync(GetLastMessagesRequest request, CancellationToken cancellationToken = default);
     Task<MessageDto?> GetMessageAsync(Guid id, CancellationToken cancellationToken = default);
     Task<List<MessageDto>> BatchGetMessagesAsync(BatchGetMessageRequest request, CancellationToken cancellationToken = default);
-    Task<List<MessageDto>> SearchMessagesAsync(SearchMessagesRequest request, CancellationToken cancellationToken = default);
+    Task<IPagedResult<MessageDto>> GetPagedMessagesAsync(SearchMessagesRequest request, CancellationToken cancellationToken = default);
     Task<MessageDto?> SendMessageAsync(MessageRequest request, CancellationToken cancellationToken = default);
 }
 
@@ -37,7 +37,7 @@ public class MessagesClient : BaseClient, IMessagesClient
         return await PostAsync<List<MessageDto>>("api/v1/messages/batch", request, cancellationToken) ?? new List<MessageDto>();
     }
 
-    public async Task<List<MessageDto>> SearchMessagesAsync(SearchMessagesRequest request, CancellationToken cancellationToken = default)
+    public async Task<IPagedResult<MessageDto>> GetPagedMessagesAsync(SearchMessagesRequest request, CancellationToken cancellationToken = default)
     {
         var query = new Dictionary<string, object?>
         {
@@ -58,7 +58,8 @@ public class MessagesClient : BaseClient, IMessagesClient
         }
         var queryParams = BuildQueryString(query);
 
-        return await GetAsync<List<MessageDto>>($"api/v1/messages/search{queryParams}", cancellationToken) ?? new List<MessageDto>();
+        return await GetAsync<IPagedResult<MessageDto>>($"api/v1/messages{queryParams}", cancellationToken)
+            ?? new PagedResult<MessageDto>(new List<MessageDto>(), 0, request.Offset, request.Limit);
     }
 
     public async Task<MessageDto?> SendMessageAsync(MessageRequest request, CancellationToken cancellationToken = default)
