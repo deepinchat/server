@@ -7,7 +7,7 @@ public class MessageDto
     public Guid Id { get; set; }
     public MessageType Type { get; set; }
     public Guid ChatId { get; set; }
-    public Guid UserId { get; set; }
+    public Guid? UserId { get; set; }
     public Guid? ParentId { get; set; }
     public Guid? ReplyToId { get; set; }
     public DateTimeOffset CreatedAt { get; set; }

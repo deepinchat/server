@@ -66,5 +66,5 @@ public record UpdateGroupChatRequest(
 public class ChatUnreadCountDto
 {
     public Guid ChatId { get; set; }
-    public long UnreadCount { get; set; }
+    public int UnreadCount { get; set; }
 }
