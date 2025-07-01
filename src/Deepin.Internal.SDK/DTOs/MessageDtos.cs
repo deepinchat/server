@@ -90,3 +90,8 @@ public class BatchGetMessageRequest
 {
     public List<Guid> Ids { get; set; } = new();
 }
+public class LastMessageDto
+{
+    public Guid ChatId { get; set; }
+    public Guid MessageId { get; set; }
+}

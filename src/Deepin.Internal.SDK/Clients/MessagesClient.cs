@@ -10,7 +10,7 @@ namespace Deepin.Internal.SDK.Clients;
 /// </summary>
 public interface IMessagesClient
 {
-    Task<List<MessageDto>> GetLastMessagesAsync(GetLastMessagesRequest request, CancellationToken cancellationToken = default);
+    Task<List<LastMessageDto>> GetLastMessagesAsync(GetLastMessagesRequest request, CancellationToken cancellationToken = default);
     Task<MessageDto?> GetMessageAsync(Guid id, CancellationToken cancellationToken = default);
     Task<List<MessageDto>> BatchGetMessagesAsync(BatchGetMessageRequest request, CancellationToken cancellationToken = default);
     Task<IPagedResult<MessageDto>> GetPagedMessagesAsync(SearchMessagesRequest request, CancellationToken cancellationToken = default);
@@ -67,8 +67,8 @@ public class MessagesClient : BaseClient, IMessagesClient
         return await PostAsync<MessageDto>("api/v1/messages", request, cancellationToken);
     }
 
-    public async Task<List<MessageDto>> GetLastMessagesAsync(GetLastMessagesRequest request, CancellationToken cancellationToken = default)
+    public async Task<List<LastMessageDto>> GetLastMessagesAsync(GetLastMessagesRequest request, CancellationToken cancellationToken = default)
     {
-        return await PostAsync<List<MessageDto>>("api/v1/messages/lasts", request, cancellationToken) ?? new List<MessageDto>();
+        return await PostAsync<List<LastMessageDto>>("api/v1/messages/lasts", request, cancellationToken) ?? new List<LastMessageDto>();
     }
 }

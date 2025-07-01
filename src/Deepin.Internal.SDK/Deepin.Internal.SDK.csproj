@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>Deepin.Internal.SDK</PackageId>
-    <Version>0.0.8-beta</Version>
+    <Version>0.0.9-beta</Version>
 		<Authors>Leo Yang</Authors>
 		<Company>Deepin</Company>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>

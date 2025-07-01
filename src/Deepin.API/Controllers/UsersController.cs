@@ -27,10 +27,6 @@ namespace Deepin.API.Controllers
         public async Task<ActionResult<IEnumerable<UserDto>>> BatchGetUsers([FromBody] BatchGetUserRequest request, CancellationToken cancellationToken = default)
         {
             var users = await userQueries.GetUsersAsync(request.Ids, cancellationToken);
-            if (users == null || !users.Any())
-            {
-                return NotFound();
-            }
             return Ok(users);
         }
         [HttpGet("search")]
