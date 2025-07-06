@@ -18,14 +18,14 @@ public abstract class ChatBase : Entity<Guid>, IAggregateRoot
     public IReadOnlyCollection<ChatReadStatus> ReadStatuses => _readStatuses;
     public IReadOnlyCollection<ChatMessage> Messages => _messages;
     protected ChatBase() { }
-    public ChatBase(Guid createdBy)
+    public ChatBase(Guid createdBy, ChatType type)
     {
         CreatedAt = DateTimeOffset.UtcNow;
         UpdatedAt = DateTimeOffset.UtcNow;
         IsActive = true;
         CreatedBy = createdBy;
         this.AddMember(createdBy, ChatMemberRole.Owner);
-        this.AddDomainEvent(new ChatCreatedDomainEvent(this));
+        this.AddDomainEvent(new ChatCreatedDomainEvent(this, type));
     }
     public void AddMember(Guid userId, ChatMemberRole role = ChatMemberRole.Member, string? displayName = null)
     {

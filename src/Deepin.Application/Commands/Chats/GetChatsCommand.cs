@@ -21,7 +21,7 @@ IRequestHandler<GetGroupChatsCommand, IEnumerable<GroupChatDto>?>
 
     public async Task<IEnumerable<GroupChatDto>?> Handle(GetGroupChatsCommand request, CancellationToken cancellationToken)
     {
-        var cacheKey = CacheKeys.GetMessageByIdCacheKey(request.UserId);
+        var cacheKey = CacheKeys.GetGroupChatsCacheKey(request.UserId);
         return await cacheManager.GetOrSetAsync(cacheKey, () => chatQueries.GetGroupChatsAsync(request.UserId, cancellationToken));
     }
 }

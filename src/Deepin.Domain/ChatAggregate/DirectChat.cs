@@ -5,7 +5,7 @@ public class DirectChat : ChatBase
     public DirectChat() : base()
     {
     }
-    public DirectChat(Guid currentUserId, Guid otherUserId) : base(currentUserId)
+    public DirectChat(Guid currentUserId, Guid otherUserId) : base(currentUserId, ChatType.Direct)
     {
         base.AddMember(otherUserId, ChatMemberRole.Owner);
     }

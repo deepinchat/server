@@ -24,7 +24,11 @@ public class MessageSentIntegrationEventHandler(
         }
         await chatsHub.Clients
               .Group(@event.ChatId.ToString())
-              .SendAsync("NewMessage", message, cancellationToken: cancellationToken)
+              .SendAsync("NewMessage", new
+              {
+                  chatId = @event.ChatId,
+                  id = message.Id
+              }, cancellationToken: cancellationToken)
               .ContinueWith(task =>
               {
                   if (task.IsFaulted)

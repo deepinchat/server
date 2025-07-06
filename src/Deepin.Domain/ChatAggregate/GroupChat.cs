@@ -11,7 +11,7 @@ public class GroupChat : ChatBase
     {
         Name = string.Empty;
     }
-    public GroupChat(Guid userId, string name, string? userName = null, string? description = null, Guid? avatarFileId = null, bool isPublic = false) : base(userId)
+    public GroupChat(Guid userId, string name, string? userName = null, string? description = null, Guid? avatarFileId = null, bool isPublic = false) : base(userId, ChatType.Group)
     {
         Name = name;
         UserName = userName;
