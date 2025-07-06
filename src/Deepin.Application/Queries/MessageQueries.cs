@@ -11,9 +11,17 @@ public interface IMessageQueries
 {
     Task<MessageDto?> GetMessageAsync(Guid id, CancellationToken cancellationToken = default);
     Task<IEnumerable<MessageDto>> GetMessagesAsync(Guid[] ids, CancellationToken cancellationToken = default);
-    Task<IPagedResult<MessageDto>> SearchMessagesAsync(int limit, int offset, string? search = null, Guid? chatId = null, Guid? userId = null, CancellationToken cancellationToken = default);
     Task<Guid?> GetLastIdAsync(Guid chatId, CancellationToken cancellationToken = default);
     Task<IEnumerable<LastMessageDto>> GetLastMessageIdsAsync(Guid[] chatIds, CancellationToken cancellationToken = default);
+    Task<IPagedResult<MessageDto>> SearchMessagesAsync(
+        int limit,
+        int offset,
+        string? search = null,
+        Guid? chatId = null,
+        Guid? userId = null,
+        SortDirection sortBy = SortDirection.Descending,
+        DateTimeOffset? readAt = null,
+        CancellationToken cancellationToken = default);
 }
 
 public class MessageQueries(IDbConnectionFactory dbConnectionFactory) : IMessageQueries
@@ -92,7 +100,15 @@ public class MessageQueries(IDbConnectionFactory dbConnectionFactory) : IMessage
         return messages?.FirstOrDefault();
     }
 
-    public async Task<IPagedResult<MessageDto>> SearchMessagesAsync(int limit, int offset, string? search = null, Guid? chatId = null, Guid? userId = null, CancellationToken cancellationToken = default)
+    public async Task<IPagedResult<MessageDto>> SearchMessagesAsync(
+        int limit,
+        int offset,
+        string? search = null,
+        Guid? chatId = null,
+        Guid? userId = null,
+        SortDirection sortBy = SortDirection.Descending,
+        DateTimeOffset? readAt = null,
+        CancellationToken cancellationToken = default)
     {
         using (var connection = await dbConnectionFactory.CreateMessageDbConnectionAsync(cancellationToken))
         {
@@ -140,6 +156,17 @@ public class MessageQueries(IDbConnectionFactory dbConnectionFactory) : IMessage
             {
                 condations.Add("m.content ILIKE @search");
             }
+            if (readAt.HasValue)
+            {
+                if (sortBy == SortDirection.Descending)
+                {
+                    condations.Add("m.created_at <= @readAt");
+                }
+                else
+                {
+                    condations.Add("m.created_at >= @readAt");
+                }
+            }
             if (condations.Any())
             {
                 countSql += " AND " + string.Join(" AND ", condations);
@@ -151,7 +178,8 @@ public class MessageQueries(IDbConnectionFactory dbConnectionFactory) : IMessage
             {
                 return new PagedResult<MessageDto>();
             }
-            querySql += " ORDER BY m.created_at DESC LIMIT @limit OFFSET @offset";
+            querySql += " ORDER BY m.created_at " + (sortBy == SortDirection.Descending ? "DESC" : "ASC");
+            querySql += " LIMIT @limit OFFSET @offset";
             var command = new CommandDefinition(querySql, new { limit, offset, chatId, userId, search = $"%{search}%" }, cancellationToken: cancellationToken);
             var rows = await connection.QueryAsync<dynamic>(command);
             var messages = rows.GroupBy(row => row.id).Select(MapMessageDto);

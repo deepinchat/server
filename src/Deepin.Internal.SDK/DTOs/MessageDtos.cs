@@ -70,11 +70,9 @@ public class MessageAttachmentRequest
 /// <summary>
 /// Request model for searching messages
 /// </summary>
-public class SearchMessagesRequest
+public class SearchMessagesRequest : PagedQuery
 {
-    public int Limit { get; set; } = 20;
-    public int Offset { get; set; } = 0;
-    public string? Query { get; set; }
+    public DateTimeOffset? ReadAt { get; set; }
     public Guid? ChatId { get; set; }
     public Guid? UserId { get; set; }
 }

@@ -56,7 +56,7 @@ public class ChatsClient : BaseClient, IChatsClient
 
     public async Task<IPagedResult<ChatMemberDto>> GetChatMembersAsync(Guid id, int offset = 0, int limit = 20, CancellationToken cancellationToken = default)
     {
-        var response = await GetAsync<IPagedResult<ChatMemberDto>>($"api/v1/chats/{id}/members?offset={offset}&limit={limit}", cancellationToken);
+        var response = await GetAsync<PagedResult<ChatMemberDto>>($"api/v1/chats/{id}/members?offset={offset}&limit={limit}", cancellationToken);
         return response ?? new PagedResult<ChatMemberDto>(Array.Empty<ChatMemberDto>(), 0, offset, limit);
     }
 
@@ -111,7 +111,7 @@ public class ChatsClient : BaseClient, IChatsClient
             ["search"] = request.Search
         };
         var queryParams = BuildQueryString(query);
-        var response = await GetAsync<IPagedResult<GroupChatDto>>($"api/v1/chats/search{queryParams}", cancellationToken);
+        var response = await GetAsync<PagedResult<GroupChatDto>>($"api/v1/chats/search{queryParams}", cancellationToken);
         return response ?? new PagedResult<GroupChatDto>(Array.Empty<GroupChatDto>(), 0, request.Offset, request.Limit);
     }
 

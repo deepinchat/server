@@ -34,9 +34,6 @@ public class BatchGetUsersRequest
 /// <summary>
 /// Request model for searching users
 /// </summary>
-public class SearchUsersRequest
+public class SearchUsersRequest : PagedQuery
 {
-    public string? Query { get; set; } = string.Empty;
-    public int Limit { get; set; } = 20;
-    public int Offset { get; set; } = 0;
 }

@@ -40,6 +40,8 @@ namespace Deepin.API.Controllers
                 search: request.Search,
                 chatId: request.ChatId,
                 userId: request.UserId,
+                sortBy: request.SortBy ?? SortDirection.Descending,
+                readAt: request.ReadAt,
                 cancellationToken: cancellationToken);
             return Ok(result);
         }

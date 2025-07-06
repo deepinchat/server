@@ -37,18 +37,20 @@ public class UsersClient : BaseClient, IUsersClient
 
     public async Task<IPagedResult<UserDto>> SearchUsersAsync(SearchUsersRequest request, CancellationToken cancellationToken = default)
     {
+        var sortBy = request.SortBy ?? SortDirection.Descending;
         var query = new Dictionary<string, object?>
         {
             ["offset"] = request.Offset,
-            ["limit"] = request.Limit
+            ["limit"] = request.Limit,
+            ["sortBy"] = sortBy.ToString().ToLowerInvariant()
         };
-        if (!string.IsNullOrEmpty(request.Query))
+        if (!string.IsNullOrEmpty(request.Search))
         {
-            query["search"] = request.Query;
+            query["search"] = request.Search;
         }
         var queryParams = BuildQueryString(query);
 
-        var response = await GetAsync<IPagedResult<UserDto>>($"api/v1/users/search{queryParams}", cancellationToken);
+        var response = await GetAsync<PagedResult<UserDto>>($"api/v1/users/search{queryParams}", cancellationToken);
 
         return response ?? new PagedResult<UserDto>(new List<UserDto>(), 0, request.Offset, request.Limit);
     }

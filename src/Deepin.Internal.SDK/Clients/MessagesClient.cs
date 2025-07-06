@@ -39,14 +39,16 @@ public class MessagesClient : BaseClient, IMessagesClient
 
     public async Task<IPagedResult<MessageDto>> GetPagedMessagesAsync(SearchMessagesRequest request, CancellationToken cancellationToken = default)
     {
+        var sortBy = request.SortBy ?? SortDirection.Descending;
         var query = new Dictionary<string, object?>
         {
             ["offset"] = request.Offset,
-            ["limit"] = request.Limit
+            ["limit"] = request.Limit,
+            ["sortBy"] = sortBy.ToString().ToLowerInvariant()
         };
-        if (!string.IsNullOrEmpty(request.Query))
+        if (!string.IsNullOrEmpty(request.Search))
         {
-            query["search"] = request.Query;
+            query["search"] = request.Search;
         }
         if (request.ChatId.HasValue)
         {
@@ -56,9 +58,13 @@ public class MessagesClient : BaseClient, IMessagesClient
         {
             query["userId"] = request.UserId.Value;
         }
+        if (request.ReadAt.HasValue)
+        {
+            query["readAt"] = request.ReadAt.Value;
+        }
         var queryParams = BuildQueryString(query);
 
-        return await GetAsync<IPagedResult<MessageDto>>($"api/v1/messages{queryParams}", cancellationToken)
+        return await GetAsync<PagedResult<MessageDto>>($"api/v1/messages{queryParams}", cancellationToken)
             ?? new PagedResult<MessageDto>(new List<MessageDto>(), 0, request.Offset, request.Limit);
     }
 
