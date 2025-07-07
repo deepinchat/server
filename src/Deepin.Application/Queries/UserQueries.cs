@@ -153,6 +153,7 @@ public class UserQueries(IDbConnectionFactory dbConnectionFactory) : IUserQuerie
                 });
             }
         }
+        user.Claims = userCliams;
         return user;
     }
 }

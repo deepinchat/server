@@ -23,6 +23,8 @@ public class UserCliamDto
     public string? ClaimValue { get; set; }
 }
 
+public record UserCliamRequest(string ClaimType, string ClaimValue);
+
 /// <summary>
 /// Request model for getting users by IDs
 /// </summary>

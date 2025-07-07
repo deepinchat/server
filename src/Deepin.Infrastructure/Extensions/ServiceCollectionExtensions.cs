@@ -2,6 +2,7 @@
 using Deepin.Domain.ChatAggregate;
 using Deepin.Domain.Emails;
 using Deepin.Domain.FileAggregate;
+using Deepin.Domain.Identity;
 using Deepin.Domain.MessageAggregate;
 using Deepin.Infrastructure.Caching;
 using Deepin.Infrastructure.Configurations;
@@ -269,6 +270,7 @@ public static class ServiceCollectionExtensions
                 sql.EnableRetryOnFailure(3);
             });
         }, ServiceLifetime.Scoped);
+        services.AddScoped<IUserRepository, UserRepository>();
         return services;
     }
     public static IServiceCollection AddIdentityServerPersistedGrantDbContext(this IServiceCollection services, string connectionString)

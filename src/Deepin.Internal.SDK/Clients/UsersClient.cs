@@ -11,6 +11,7 @@ namespace Deepin.Internal.SDK.Clients;
 public interface IUsersClient
 {
     Task<UserDto?> GetUserAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<UserDto?> UpdateUserClaimsAsync(Guid id, IEnumerable<UserCliamRequest> requests, CancellationToken cancellationToken = default);
     Task<List<UserDto>> BatchGetUsersAsync(BatchGetUsersRequest request, CancellationToken cancellationToken = default);
     Task<IPagedResult<UserDto>> SearchUsersAsync(SearchUsersRequest request, CancellationToken cancellationToken = default);
 }
@@ -53,5 +54,15 @@ public class UsersClient : BaseClient, IUsersClient
         var response = await GetAsync<PagedResult<UserDto>>($"api/v1/users/search{queryParams}", cancellationToken);
 
         return response ?? new PagedResult<UserDto>(new List<UserDto>(), 0, request.Offset, request.Limit);
+    }
+
+    public async Task<UserDto?> UpdateUserClaimsAsync(Guid id, IEnumerable<UserCliamRequest> requests, CancellationToken cancellationToken = default)
+    {
+        if (requests == null || !requests.Any())
+        {
+            throw new ArgumentException("Claims cannot be null or empty.", nameof(requests));
+        }
+
+        return await PostAsync<UserDto>($"api/v1/users/{id}/claims", requests, cancellationToken);
     }
 }
