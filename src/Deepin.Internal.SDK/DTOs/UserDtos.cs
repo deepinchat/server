@@ -18,7 +18,7 @@ public class UserDto
 }
 public class UserCliamDto
 {
-    public Guid Id { get; set; }
+    public int Id { get; set; }
     public string? ClaimType { get; set; }
     public string? ClaimValue { get; set; }
 }
