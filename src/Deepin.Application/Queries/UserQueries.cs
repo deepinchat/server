@@ -41,23 +41,22 @@ public class UserQueries(IDbConnectionFactory dbConnectionFactory) : IUserQuerie
                     u.""EmailConfirmed"",
                     u.""PhoneNumberConfirmed"",
                     u.""CreatedAt"",
-                    u.""UpdatedAt"",
-                    uc.""Id"" AS ""ClaimId"",
-                    uc.""ClaimType"",
-                    uc.""ClaimValue""
+                    u.""UpdatedAt""
                 FROM 
                     users AS u
-                LEFT JOIN
-                    user_claims AS uc ON u.""Id"" = uc.""UserId""
                 WHERE 
                     u.""Id"" = ANY(@ids)";
             var command = new CommandDefinition(sql, new { ids }, cancellationToken: cancellationToken);
             var rows = await connection.QueryAsync<dynamic>(command);
-            return rows
-                .GroupBy(r => r.Id)
-                .Select(g => MapUser(g.ToArray()))
-                .Where(u => u != null)
-                .Select(u => u!);
+            if (rows == null || !rows.Any())
+            {
+                return Enumerable.Empty<UserDto>();
+            }
+            var userIds = rows.Select(u => (Guid)u.Id).Distinct().ToArray();
+            var claimsRows = await GetUserClaimsAsync(userIds, cancellationToken);
+            return rows.Select(u => MapUser(u, claimsRows.Where(c => c.UserId == u.Id)))
+                       .Cast<UserDto>()
+                       .ToList();
         }
     }
     public async Task<IPagedResult<UserDto>> SearchUsersAsync(
@@ -78,20 +77,14 @@ public class UserQueries(IDbConnectionFactory dbConnectionFactory) : IUserQuerie
                     u.""EmailConfirmed"",
                     u.""PhoneNumberConfirmed"",
                     u.""CreatedAt"",
-                    u.""UpdatedAt"",
-                    uc.""Id"" AS ""ClaimId"",
-                    uc.""ClaimType"",
-                    uc.""ClaimValue""
+                    u.""UpdatedAt""
                 FROM 
-                    users AS u
-                LEFT JOIN
-                    user_claims AS uc ON u.""Id"" = uc.""UserId""";
+                    users AS u";
             var countQuery = @"
-                SELECT COUNT(DISTINCT u.""Id"") 
+                SELECT 
+                    COUNT(u.""Id"") 
                 FROM 
-                    users u
-                LEFT JOIN
-                    user_claims AS uc ON u.""Id"" = uc.""UserId""";
+                    users u";
             var condations = new List<string>
             {
                 @"1 = 1"
@@ -110,50 +103,63 @@ public class UserQueries(IDbConnectionFactory dbConnectionFactory) : IUserQuerie
             {
                 return new PagedResult<UserDto>(new List<UserDto>(), 0, limit, offset);
             }
-            var command = new CommandDefinition(query, new { search = $"%{search}%", limit, offset }, cancellationToken: cancellationToken);
-            var rows = await connection.QueryAsync<dynamic>(command);
+            var userQueryCommand = new CommandDefinition(query, new { search = $"%{search}%", limit, offset }, cancellationToken: cancellationToken);
+            var rows = await connection.QueryAsync<dynamic>(userQueryCommand);
+            var userIds = rows.Select(u => (Guid)u.Id).ToArray();
+            var claimsRows = await GetUserClaimsAsync(userIds, cancellationToken);
             var users = rows
-                .GroupBy(r => r.Id)
-                .Select(g => MapUser(g.ToArray()))
-                .Where(u => u != null)
-                .Select(u => u!)
+                .Select(u => MapUser(u, claimsRows.Where(c => c.UserId == u.Id)))
+                .Cast<UserDto>()
                 .ToList();
-            return new PagedResult<UserDto>(users, totalCount, limit, offset);
+
+            return new PagedResult<UserDto>(users, offset, limit, totalCount);
         }
     }
-    private UserDto? MapUser(dynamic[] rows)
+    private async Task<IEnumerable<dynamic>> GetUserClaimsAsync(IEnumerable<Guid> userIds, CancellationToken cancellationToken = default)
     {
-        var firstRow = rows.FirstOrDefault();
-        if (firstRow == null)
+        if (userIds == null || !userIds.Any())
         {
-            return null;
+            return Enumerable.Empty<dynamic>();
         }
+        using var connection = await dbConnectionFactory.CreateIdentityDbConnectionAsync(cancellationToken);
+        var sql = @"
+                SELECT 
+                    uc.""Id"",
+                    uc.""UserId"",
+                    uc.""ClaimType"",
+                    uc.""ClaimValue""
+                FROM 
+                    user_claims AS uc
+                WHERE 
+                    uc.""UserId"" = ANY(@userIds)";
+        var command = new CommandDefinition(sql, new { userIds }, cancellationToken: cancellationToken);
+        return await connection.QueryAsync<dynamic>(command);
+    }
+    private UserDto MapUser(dynamic row, IEnumerable<dynamic> claimsByUser)
+    {
         var user = new UserDto
         {
-            Id = firstRow.Id,
-            UserName = firstRow.UserName,
-            Email = firstRow.Email,
-            PhoneNumber = firstRow.PhoneNumber,
-            TwoFactorEnabled = firstRow.TwoFactorEnabled,
-            EmailConfirmed = firstRow.EmailConfirmed,
-            PhoneNumberConfirmed = firstRow.PhoneNumberConfirmed,
-            CreatedAt = firstRow.CreatedAt,
-            UpdatedAt = firstRow.UpdatedAt
+            Id = row.Id,
+            UserName = row.UserName,
+            Email = row.Email,
+            PhoneNumber = row.PhoneNumber,
+            TwoFactorEnabled = row.TwoFactorEnabled,
+            EmailConfirmed = row.EmailConfirmed,
+            PhoneNumberConfirmed = row.PhoneNumberConfirmed,
+            CreatedAt = row.CreatedAt,
+            UpdatedAt = row.UpdatedAt
         };
-        var userCliams = new List<UserCliamDto>();
-        foreach (var row in rows)
+        if (claimsByUser != null && claimsByUser.Any())
         {
-            if (row.ClaimId != null && row.ClaimId > 0)
-            {
-                userCliams.Add(new UserCliamDto
+            user.Claims = claimsByUser
+                .Select(c => new UserCliamDto
                 {
-                    Id = row.ClaimId,
-                    ClaimType = row.ClaimType,
-                    ClaimValue = row.ClaimValue
-                });
-            }
+                    Id = c.Id,
+                    ClaimType = c.ClaimType,
+                    ClaimValue = c.ClaimValue
+                })
+                .ToList();
         }
-        user.Claims = userCliams;
         return user;
     }
 }
