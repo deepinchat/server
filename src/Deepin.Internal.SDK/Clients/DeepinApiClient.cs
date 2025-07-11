@@ -28,6 +28,11 @@ public interface IDeepinApiClient
     /// Client for user-related operations
     /// </summary>
     IUsersClient Users { get; }
+
+    /// <summary>
+    /// Client for contact-related operations
+    /// </summary>
+    IContactApiClient Contacts { get; }
 }
 
 /// <summary>
