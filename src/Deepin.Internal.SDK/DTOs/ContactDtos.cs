@@ -31,7 +31,7 @@ public class ContactDto
     public string? Address { get; set; }
     public string? Notes { get; set; }
     public Guid CreatedBy { get; set; }
-    public Guid UserId { get; set; }
+    public Guid? UserId { get; set; }
 }
 
 public class SearchContactRequest : PagedQuery;
