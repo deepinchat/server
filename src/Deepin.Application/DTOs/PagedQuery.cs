@@ -17,6 +17,6 @@ public class PagedQuery
 
 public enum SortDirection
 {
-    Ascending,
-    Descending
+    Asc,
+    Desc
 }

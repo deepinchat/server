@@ -21,7 +21,7 @@ public interface IUsersClient
 /// </summary>
 public class UsersClient : BaseClient, IUsersClient
 {
-    public UsersClient(HttpClient httpClient, IOptions<DeepinApiOptions> options, ILogger<UsersClient> logger)
+    public UsersClient(HttpClient httpClient, IOptions<DeepinApiOptions> options, ILogger logger)
         : base(httpClient, options, logger)
     {
     }
@@ -38,7 +38,7 @@ public class UsersClient : BaseClient, IUsersClient
 
     public async Task<IPagedResult<UserDto>> SearchUsersAsync(SearchUsersRequest request, CancellationToken cancellationToken = default)
     {
-        var sortBy = request.SortBy ?? SortDirection.Descending;
+        var sortBy = request.SortBy ?? SortDirection.Desc;
         var query = new Dictionary<string, object?>
         {
             ["offset"] = request.Offset,

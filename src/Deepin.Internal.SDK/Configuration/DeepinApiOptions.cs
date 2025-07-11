@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 namespace Deepin.Internal.SDK.Configuration;
 
 /// <summary>
@@ -19,4 +21,8 @@ public class DeepinApiOptions
     /// Additional headers to include with requests
     /// </summary>
     public Dictionary<string, string> DefaultHeaders { get; set; } = new();
+    /// <summary>
+    /// JSON serializer options for request and response serialization
+    /// </summary>
+    public JsonSerializerOptions? JsonSerializerOptions { get; set; }
 }

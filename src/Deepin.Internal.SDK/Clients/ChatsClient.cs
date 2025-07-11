@@ -30,7 +30,7 @@ public interface IChatsClient
 /// </summary>
 public class ChatsClient : BaseClient, IChatsClient
 {
-    public ChatsClient(HttpClient httpClient, IOptions<DeepinApiOptions> options, ILogger<ChatsClient> logger)
+    public ChatsClient(HttpClient httpClient, IOptions<DeepinApiOptions> options, ILogger logger)
         : base(httpClient, options, logger)
     {
     }

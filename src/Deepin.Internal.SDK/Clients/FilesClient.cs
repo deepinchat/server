@@ -20,7 +20,7 @@ public interface IFilesClient
 /// </summary>
 public class FilesClient : BaseClient, IFilesClient
 {
-    public FilesClient(HttpClient httpClient, IOptions<DeepinApiOptions> options, ILogger<FilesClient> logger)
+    public FilesClient(HttpClient httpClient, IOptions<DeepinApiOptions> options, ILogger logger)
         : base(httpClient, options, logger)
     {
     }

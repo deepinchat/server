@@ -22,33 +22,15 @@ public abstract class BaseClient
         Options = options.Value;
         Logger = logger;
 
-        JsonOptions = new JsonSerializerOptions
+        JsonOptions = options.Value.JsonSerializerOptions ?? new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             PropertyNameCaseInsensitive = true,
-            Converters =
-            {
-                new System.Text.Json.Serialization.JsonStringEnumConverter()
-            },
+            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
+            WriteIndented = true
         };
-
-        ConfigureHttpClient();
     }
 
-    private void ConfigureHttpClient()
-    {
-        if (!string.IsNullOrEmpty(Options.BaseUrl))
-        {
-            HttpClient.BaseAddress = new Uri(Options.BaseUrl);
-        }
-
-        HttpClient.Timeout = Options.Timeout;
-
-        foreach (var header in Options.DefaultHeaders)
-        {
-            HttpClient.DefaultRequestHeaders.Add(header.Key, header.Value);
-        }
-    }
 
     /// <summary>
     /// Sends a GET request and returns the response

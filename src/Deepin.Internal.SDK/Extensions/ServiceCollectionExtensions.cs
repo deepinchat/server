@@ -2,6 +2,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Deepin.Internal.SDK.Configuration;
 using Deepin.Internal.SDK.Clients;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Deepin.Internal.SDK.Extensions;
 
@@ -16,10 +18,24 @@ public static class ServiceCollectionExtensions
     /// <param name="services">The service collection</param>
     /// <param name="configure">Configuration action for Deepin API options</param>
     /// <returns>The service collection for method chaining</returns>
-    public static IHttpClientBuilder AddDeepinApiClient(this IServiceCollection services, Action<DeepinApiOptions> configure)
+    public static IHttpClientBuilder AddDeepinApiClient(this IServiceCollection services, Action<DeepinApiOptions>? configure = null)
     {
         if (services == null) throw new ArgumentNullException(nameof(services));
-        if (configure == null) throw new ArgumentNullException(nameof(configure));
+        if (configure == null)
+        {
+            configure = options =>
+            {
+                options.BaseUrl = "https://api.deepin.chat";
+                options.Timeout = TimeSpan.FromSeconds(60);
+                options.JsonSerializerOptions = new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    PropertyNameCaseInsensitive = true,
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+                    WriteIndented = true
+                };
+            };
+        }
 
         // Configure options
         services.Configure(configure);
@@ -35,6 +51,11 @@ public static class ServiceCollectionExtensions
              }
 
              httpClient.Timeout = options.Timeout;
+
+             foreach (var header in options.DefaultHeaders)
+             {
+                 httpClient.DefaultRequestHeaders.Add(header.Key, header.Value);
+             }
          });
     }
 }

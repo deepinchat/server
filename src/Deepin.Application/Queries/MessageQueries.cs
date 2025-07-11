@@ -19,7 +19,7 @@ public interface IMessageQueries
         string? search = null,
         Guid? chatId = null,
         Guid? userId = null,
-        SortDirection sortBy = SortDirection.Descending,
+        SortDirection sortBy = SortDirection.Desc,
         DateTimeOffset? readAt = null,
         CancellationToken cancellationToken = default);
 }
@@ -106,7 +106,7 @@ public class MessageQueries(IDbConnectionFactory dbConnectionFactory) : IMessage
         string? search = null,
         Guid? chatId = null,
         Guid? userId = null,
-        SortDirection sortBy = SortDirection.Descending,
+        SortDirection sortBy = SortDirection.Desc,
         DateTimeOffset? readAt = null,
         CancellationToken cancellationToken = default)
     {
@@ -158,7 +158,7 @@ public class MessageQueries(IDbConnectionFactory dbConnectionFactory) : IMessage
             }
             if (readAt.HasValue)
             {
-                if (sortBy == SortDirection.Descending)
+                if (sortBy == SortDirection.Desc)
                 {
                     condations.Add("m.created_at <= @readAt");
                 }
@@ -178,7 +178,7 @@ public class MessageQueries(IDbConnectionFactory dbConnectionFactory) : IMessage
             {
                 return new PagedResult<MessageDto>();
             }
-            querySql += " ORDER BY m.created_at " + (sortBy == SortDirection.Descending ? "DESC" : "ASC");
+            querySql += " ORDER BY m.created_at " + sortBy.ToString().ToUpperInvariant() ;
             querySql += " LIMIT @limit OFFSET @offset";
             var command = new CommandDefinition(querySql, new { limit, offset, chatId, userId, search = $"%{search}%" }, cancellationToken: cancellationToken);
             var rows = await connection.QueryAsync<dynamic>(command);

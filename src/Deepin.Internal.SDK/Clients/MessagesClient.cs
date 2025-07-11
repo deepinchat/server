@@ -22,7 +22,7 @@ public interface IMessagesClient
 /// </summary>
 public class MessagesClient : BaseClient, IMessagesClient
 {
-    public MessagesClient(HttpClient httpClient, IOptions<DeepinApiOptions> options, ILogger<MessagesClient> logger)
+    public MessagesClient(HttpClient httpClient, IOptions<DeepinApiOptions> options, ILogger logger)
         : base(httpClient, options, logger)
     {
     }
@@ -39,7 +39,7 @@ public class MessagesClient : BaseClient, IMessagesClient
 
     public async Task<IPagedResult<MessageDto>> GetPagedMessagesAsync(SearchMessagesRequest request, CancellationToken cancellationToken = default)
     {
-        var sortBy = request.SortBy ?? SortDirection.Descending;
+        var sortBy = request.SortBy ?? SortDirection.Desc;
         var query = new Dictionary<string, object?>
         {
             ["offset"] = request.Offset,

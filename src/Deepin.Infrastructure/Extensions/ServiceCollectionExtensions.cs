@@ -1,5 +1,6 @@
 ﻿using Deepin.Application.Interfaces;
 using Deepin.Domain.ChatAggregate;
+using Deepin.Domain.ContactAggregate;
 using Deepin.Domain.Emails;
 using Deepin.Domain.FileAggregate;
 using Deepin.Domain.Identity;
@@ -148,7 +149,7 @@ public static class ServiceCollectionExtensions
         {
             options.UseNpgsql(connectionString);
         });
-        // services.AddScoped<IContactRepository, Contactr>();
+        services.AddScoped<IContactRepository, ContactRepository>();
         return services;
     }
     public static IServiceCollection AddStorageDbContext(this IServiceCollection services, string connectionString)

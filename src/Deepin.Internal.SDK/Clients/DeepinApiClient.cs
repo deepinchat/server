@@ -35,43 +35,96 @@ public interface IDeepinApiClient
 /// </summary>
 public class DeepinApiClient : IDeepinApiClient
 {
+    private readonly HttpClient _httpClient;
+    private readonly DeepinApiOptions _options;
+    private readonly ILogger<DeepinApiClient> _logger;
+    private Lazy<ChatsClient>? _chatsClient;
+    private Lazy<MessagesClient>? _messagesClient;
+    private Lazy<FilesClient>? _filesClient;
+    private Lazy<UsersClient>? _usersClient;
+    private Lazy<ContactApiClient>? _contactApiClient;
     public DeepinApiClient(
         HttpClient httpClient,
         IOptionsMonitor<DeepinApiOptions> optionsMonitor,
-        ILogger<DeepinApiClient> logger,
-        ILogger<ChatsClient> chatsLogger,
-        ILogger<MessagesClient> messagesLogger,
-        ILogger<FilesClient> filesLogger,
-        ILogger<UsersClient> usersLogger)
+        ILogger<DeepinApiClient> logger)
     {
-
-        // Create a wrapper that implements IOptions<T>
-        var optionsWrapper = new OptionsWrapper<DeepinApiOptions>(optionsMonitor.CurrentValue);
-
-        // Create individual clients with their specific loggers
-        Chats = new ChatsClient(httpClient, optionsWrapper, chatsLogger);
-        Messages = new MessagesClient(httpClient, optionsWrapper, messagesLogger);
-        Files = new FilesClient(httpClient, optionsWrapper, filesLogger);
-        Users = new UsersClient(httpClient, optionsWrapper, usersLogger);
+        _httpClient = httpClient;
+        _options = optionsMonitor.CurrentValue;
+        _logger = logger;
     }
 
     /// <summary>
     /// Client for chat-related operations
     /// </summary>
-    public IChatsClient Chats { get; }
+    public IChatsClient Chats
+    {
+        get
+        {
+            if (_chatsClient == null)
+            {
+                _chatsClient = new Lazy<ChatsClient>(() => new ChatsClient(_httpClient, Options.Create(_options), _logger));
+            }
+            return _chatsClient.Value;
+        }
+    }
 
     /// <summary>
     /// Client for message-related operations
     /// </summary>
-    public IMessagesClient Messages { get; }
+    public IMessagesClient Messages
+    {
+        get
+        {
+            if (_messagesClient == null)
+            {
+                _messagesClient = new Lazy<MessagesClient>(() => new MessagesClient(_httpClient, Options.Create(_options), _logger));
+            }
+            return _messagesClient.Value;
+        }
+    }
 
     /// <summary>
     /// Client for file-related operations
     /// </summary>
-    public IFilesClient Files { get; }
+    public IFilesClient Files
+    {
+        get
+        {
+            if (_filesClient == null)
+            {
+                _filesClient = new Lazy<FilesClient>(() => new FilesClient(_httpClient, Options.Create(_options), _logger));
+            }
+            return _filesClient.Value;
+        }
+    }
 
     /// <summary>
     /// Client for user-related operations
     /// </summary>
-    public IUsersClient Users { get; }
+    public IUsersClient Users
+    {
+        get
+        {
+            if (_usersClient == null)
+            {
+                _usersClient = new Lazy<UsersClient>(() => new UsersClient(_httpClient, Options.Create(_options), _logger));
+            }
+            return _usersClient.Value;
+        }
+    }
+
+    /// <summary>
+    /// Client for contact-related operations
+    /// </summary>
+    public IContactApiClient Contacts
+    {
+        get
+        {
+            if (_contactApiClient == null)
+            {
+                _contactApiClient = new Lazy<ContactApiClient>(() => new ContactApiClient(_httpClient, Options.Create(_options), _logger));
+            }
+            return _contactApiClient.Value;
+        }
+    }
 }
