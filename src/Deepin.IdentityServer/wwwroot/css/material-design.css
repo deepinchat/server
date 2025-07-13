@@ -1,0 +1,631 @@
+/* ============================================================================
+   Deepin Material Design System for Bootstrap
+   Inspired by Angular Material Design with Bootstrap components
+   ============================================================================ */
+
+:root {
+  /* Material Design Color Palette */
+  --primary: #1976d2;
+  --primary-light: #42a5f5;
+  --primary-dark: #1565c0;
+  --primary-contrast: #ffffff;
+  
+  --accent: #ff4081;
+  --accent-light: #ff79b0;
+  --accent-dark: #c60055;
+  --accent-contrast: #ffffff;
+  
+  --warn: #f44336;
+  --warn-light: #e57373;
+  --warn-dark: #d32f2f;
+  
+  /* Neutral Colors */
+  --background: #fafafa;
+  --surface: #ffffff;
+  --surface-elevated: #ffffff;
+  --on-surface: #212121;
+  --on-surface-variant: #757575;
+  --outline: #e0e0e0;
+  --outline-variant: #f5f5f5;
+  
+  /* Shadows */
+  --shadow-1: 0 2px 1px -1px rgba(0,0,0,0.2), 0 1px 1px 0 rgba(0,0,0,0.14), 0 1px 3px 0 rgba(0,0,0,0.12);
+  --shadow-2: 0 3px 1px -2px rgba(0,0,0,0.2), 0 2px 2px 0 rgba(0,0,0,0.14), 0 1px 5px 0 rgba(0,0,0,0.12);
+  --shadow-3: 0 3px 3px -2px rgba(0,0,0,0.2), 0 3px 4px 0 rgba(0,0,0,0.14), 0 1px 8px 0 rgba(0,0,0,0.12);
+  --shadow-4: 0 2px 4px -1px rgba(0,0,0,0.2), 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12);
+  
+  /* Typography */
+  --font-family: "Roboto", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  --heading-font-weight: 400;
+  --body-font-weight: 400;
+  
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-xxl: 48px;
+  
+  /* Border Radius */
+  --border-radius-sm: 4px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  --border-radius-xl: 16px;
+  
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-standard: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============================================================================
+   Global Styles
+   ============================================================================ */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--background);
+  color: var(--on-surface);
+  line-height: 1.5;
+  font-weight: var(--body-font-weight);
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================================================
+   Material Design Navigation
+   ============================================================================ */
+
+.mat-navbar {
+  background-color: var(--surface) !important;
+  box-shadow: var(--shadow-2);
+  border-bottom: 1px solid var(--outline);
+  padding: 0 var(--spacing-lg);
+  min-height: 64px;
+  z-index: 1030;
+}
+
+.mat-navbar .navbar-brand {
+  color: var(--primary) !important;
+  font-weight: 500;
+  font-size: 1.25rem;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.mat-navbar .navbar-brand:hover {
+  color: var(--primary-light) !important;
+}
+
+.mat-navbar .nav-link {
+  color: var(--on-surface) !important;
+  font-weight: 500;
+  padding: var(--spacing-sm) var(--spacing-md) !important;
+  border-radius: var(--border-radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.mat-navbar .nav-link:hover {
+  background-color: var(--outline-variant);
+  color: var(--primary) !important;
+}
+
+.mat-navbar .dropdown-menu {
+  border: none;
+  box-shadow: var(--shadow-3);
+  border-radius: var(--border-radius-md);
+  margin-top: var(--spacing-xs);
+}
+
+.mat-navbar .dropdown-item {
+  padding: var(--spacing-sm) var(--spacing-md);
+  color: var(--on-surface);
+  transition: background-color var(--transition-fast);
+}
+
+.mat-navbar .dropdown-item:hover {
+  background-color: var(--outline-variant);
+  color: var(--primary);
+}
+
+/* ============================================================================
+   Material Design Cards
+   ============================================================================ */
+
+.mat-card {
+  background-color: var(--surface);
+  border-radius: var(--border-radius-lg) !important;
+  box-shadow: var(--shadow-1);
+  border: none !important;
+  overflow: hidden;
+  transition: box-shadow var(--transition-standard);
+}
+
+.mat-card:hover {
+  box-shadow: var(--shadow-2);
+}
+
+.mat-card-elevated {
+  box-shadow: var(--shadow-3);
+}
+
+.mat-card-elevated:hover {
+  box-shadow: var(--shadow-4);
+}
+
+.mat-card .card-header {
+  background-color: var(--surface) !important;
+  border-bottom: 1px solid var(--outline) !important;
+  padding: var(--spacing-lg) var(--spacing-lg) var(--spacing-md) var(--spacing-lg) !important;
+}
+
+.mat-card .card-header h1,
+.mat-card .card-header h2,
+.mat-card .card-header h3 {
+  margin: 0;
+  color: var(--on-surface);
+  font-weight: var(--heading-font-weight);
+}
+
+.mat-card .card-body {
+  padding: var(--spacing-lg) !important;
+}
+
+.mat-card .card-footer {
+  background-color: var(--outline-variant) !important;
+  border-top: 1px solid var(--outline) !important;
+  padding: var(--spacing-md) var(--spacing-lg) !important;
+}
+
+/* ============================================================================
+   Material Design Forms
+   ============================================================================ */
+
+.mat-form-field {
+  position: relative;
+  margin-bottom: var(--spacing-lg);
+}
+
+.mat-form-field .form-label {
+  color: var(--on-surface-variant);
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: var(--spacing-xs);
+  display: block;
+}
+
+.mat-form-field .form-control {
+  border: 2px solid var(--outline);
+  border-radius: var(--border-radius-md) !important;
+  padding: var(--spacing-md) !important;
+  font-size: 1rem;
+  background-color: var(--surface);
+  color: var(--on-surface);
+  transition: all var(--transition-fast);
+}
+
+.mat-form-field .form-control:focus {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 0.2rem rgba(25, 118, 210, 0.25) !important;
+  outline: none;
+}
+
+.mat-form-field .form-control::placeholder {
+  color: var(--on-surface-variant);
+  opacity: 0.7;
+}
+
+.mat-form-field .form-control.is-invalid {
+  border-color: var(--warn) !important;
+}
+
+.mat-form-field .form-control.is-invalid:focus {
+  box-shadow: 0 0 0 0.2rem rgba(244, 67, 54, 0.25) !important;
+}
+
+.mat-form-field .invalid-feedback {
+  color: var(--warn);
+  font-size: 0.875rem;
+  margin-top: var(--spacing-xs);
+}
+
+/* Material Design Checkbox */
+.mat-checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin: var(--spacing-md) 0;
+}
+
+.mat-checkbox .form-check-input {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--outline);
+  border-radius: var(--border-radius-sm);
+  background-color: transparent;
+  transition: all var(--transition-fast);
+}
+
+.mat-checkbox .form-check-input:checked {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+.mat-checkbox .form-check-label {
+  color: var(--on-surface);
+  font-weight: 500;
+  margin: 0;
+}
+
+/* ============================================================================
+   Material Design Buttons
+   ============================================================================ */
+
+.mat-button {
+  border-radius: var(--border-radius-lg) !important;
+  font-weight: 500 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: var(--spacing-sm) var(--spacing-lg) !important;
+  transition: all var(--transition-fast) !important;
+  border: none !important;
+  font-size: 0.875rem !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  min-height: 36px;
+}
+
+.mat-button-primary {
+  background-color: var(--primary) !important;
+  color: var(--primary-contrast) !important;
+  box-shadow: var(--shadow-1);
+}
+
+.mat-button-primary:hover {
+  background-color: var(--primary-light) !important;
+  box-shadow: var(--shadow-2);
+  transform: translateY(-1px);
+}
+
+.mat-button-secondary {
+  background-color: var(--outline-variant) !important;
+  color: var(--on-surface) !important;
+  box-shadow: var(--shadow-1);
+}
+
+.mat-button-secondary:hover {
+  background-color: var(--outline) !important;
+  box-shadow: var(--shadow-2);
+  transform: translateY(-1px);
+}
+
+.mat-button-outline {
+  background-color: transparent !important;
+  color: var(--primary) !important;
+  border: 2px solid var(--primary) !important;
+}
+
+.mat-button-outline:hover {
+  background-color: var(--primary) !important;
+  color: var(--primary-contrast) !important;
+}
+
+.mat-button-text {
+  background-color: transparent !important;
+  color: var(--primary) !important;
+  box-shadow: none !important;
+}
+
+.mat-button-text:hover {
+  background-color: var(--outline-variant) !important;
+}
+
+.mat-button-danger {
+  background-color: var(--warn) !important;
+  color: var(--primary-contrast) !important;
+  box-shadow: var(--shadow-1);
+}
+
+.mat-button-danger:hover {
+  background-color: var(--warn-dark) !important;
+  box-shadow: var(--shadow-2);
+  transform: translateY(-1px);
+}
+
+/* Floating Action Button */
+.mat-fab {
+  width: 56px !important;
+  height: 56px !important;
+  border-radius: 50% !important;
+  background-color: var(--accent) !important;
+  color: var(--accent-contrast) !important;
+  box-shadow: var(--shadow-3);
+  border: none !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all var(--transition-standard) !important;
+}
+
+.mat-fab:hover {
+  box-shadow: var(--shadow-4);
+  transform: scale(1.05);
+}
+
+/* ============================================================================
+   Material Design Alerts
+   ============================================================================ */
+
+.mat-alert {
+  border-radius: var(--border-radius-md) !important;
+  border: none !important;
+  padding: var(--spacing-md) var(--spacing-lg) !important;
+  margin: var(--spacing-md) 0 !important;
+  box-shadow: var(--shadow-1);
+}
+
+.mat-alert-success {
+  background-color: #e8f5e8 !important;
+  color: #2e7d32 !important;
+}
+
+.mat-alert-info {
+  background-color: #e3f2fd !important;
+  color: var(--primary-dark) !important;
+}
+
+.mat-alert-warning {
+  background-color: #fff8e1 !important;
+  color: #ef6c00 !important;
+}
+
+.mat-alert-danger {
+  background-color: #ffebee !important;
+  color: var(--warn-dark) !important;
+}
+
+/* ============================================================================
+   Material Design Layout Components
+   ============================================================================ */
+
+.mat-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-lg);
+}
+
+.mat-page-header {
+  padding: var(--spacing-xxl) 0 var(--spacing-lg) 0;
+  text-align: center;
+}
+
+.mat-page-header h1 {
+  font-size: 2.5rem;
+  font-weight: 300;
+  color: var(--on-surface);
+  margin: 0 0 var(--spacing-sm) 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+}
+
+.mat-page-header .lead {
+  font-size: 1.125rem;
+  color: var(--on-surface-variant);
+  margin: 0 0 var(--spacing-sm) 0;
+}
+
+.mat-content {
+  padding-top: 64px; /* Match navbar height */
+  padding-bottom: var(--spacing-lg);
+  min-height: calc(100vh - 64px);
+}
+
+.mat-section {
+  margin: var(--spacing-xl) 0;
+}
+
+/* ============================================================================
+   Material Design Lists
+   ============================================================================ */
+
+.mat-list {
+  background-color: var(--surface);
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-1);
+}
+
+.mat-list-item {
+  padding: var(--spacing-md) var(--spacing-lg) !important;
+  border-bottom: 1px solid var(--outline);
+  transition: background-color var(--transition-fast);
+  color: var(--on-surface) !important;
+  text-decoration: none !important;
+}
+
+.mat-list-item:hover {
+  background-color: var(--outline-variant);
+}
+
+.mat-list-item:last-child {
+  border-bottom: none;
+}
+
+/* ============================================================================
+   Material Design Utilities
+   ============================================================================ */
+
+.mat-elevation-0 { box-shadow: none !important; }
+.mat-elevation-1 { box-shadow: var(--shadow-1) !important; }
+.mat-elevation-2 { box-shadow: var(--shadow-2) !important; }
+.mat-elevation-3 { box-shadow: var(--shadow-3) !important; }
+.mat-elevation-4 { box-shadow: var(--shadow-4) !important; }
+
+.mat-text-primary { color: var(--primary) !important; }
+.mat-text-accent { color: var(--accent) !important; }
+.mat-text-warn { color: var(--warn) !important; }
+.mat-text-muted { color: var(--on-surface-variant) !important; }
+
+.mat-bg-primary { background-color: var(--primary) !important; }
+.mat-bg-accent { background-color: var(--accent) !important; }
+.mat-bg-surface { background-color: var(--surface) !important; }
+
+/* ============================================================================
+   Responsive Design
+   ============================================================================ */
+
+@media (max-width: 768px) {
+  .mat-page-header h1 {
+    font-size: 2rem;
+  }
+  
+  .mat-card .card-body {
+    padding: var(--spacing-md) !important;
+  }
+  
+  .mat-container {
+    padding: 0 var(--spacing-md);
+  }
+  
+  .mat-button {
+    padding: var(--spacing-sm) var(--spacing-md) !important;
+    font-size: 0.8rem !important;
+  }
+}
+
+/* ============================================================================
+   Dark Mode Support (Optional)
+   ============================================================================ */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #121212;
+    --surface: #1e1e1e;
+    --surface-elevated: #2d2d2d;
+    --on-surface: #ffffff;
+    --on-surface-variant: #b3b3b3;
+    --outline: #404040;
+    --outline-variant: #2d2d2d;
+  }
+}
+
+/* ============================================================================
+   Welcome Page Specific Styles
+   ============================================================================ */
+
+.welcome-page {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-lg);
+}
+
+.welcome-page .mat-page-header {
+  background: linear-gradient(135deg, rgba(25, 118, 210, 0.05) 0%, rgba(255, 64, 129, 0.03) 100%);
+  border-radius: var(--border-radius-lg);
+  margin-bottom: var(--spacing-xl);
+  padding: var(--spacing-xl) var(--spacing-lg);
+}
+
+.welcome-page .mat-page-header small {
+  display: block;
+  margin-top: var(--spacing-sm);
+  font-size: 0.875rem;
+}
+
+.welcome-page .mat-list {
+  background: var(--surface);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-1);
+  overflow: hidden;
+  margin-bottom: var(--spacing-xl);
+}
+
+.welcome-page .mat-list .mat-list-item {
+  padding: var(--spacing-lg);
+  border-bottom: 1px solid var(--outline);
+  transition: background-color var(--transition-fast);
+}
+
+.welcome-page .mat-list .mat-list-item:last-child {
+  border-bottom: none;
+}
+
+.welcome-page .mat-list .mat-list-item:hover {
+  background-color: var(--outline-variant);
+}
+
+.welcome-page .mat-list .mat-list-item .material-icons {
+  color: var(--primary);
+  font-size: 24px;
+}
+
+.welcome-page .mat-list .mat-list-item strong {
+  color: var(--on-surface);
+  font-weight: 500;
+}
+
+.welcome-page .mat-list .mat-list-item .mat-text-muted {
+  font-size: 0.875rem;
+  margin-top: var(--spacing-xs);
+}
+
+.welcome-page .text-center a {
+  color: var(--primary);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin: 0 var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius-sm);
+  transition: background-color var(--transition-fast);
+}
+
+.welcome-page .text-center a:hover {
+  background-color: var(--outline-variant);
+  text-decoration: none;
+}
+
+.welcome-page .text-center a .material-icons {
+  font-size: 18px;
+}
+
+/* License card specific styling */
+.welcome-page .mat-card .card-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.welcome-page .mat-card .card-header h3 .material-icons {
+  color: var(--primary);
+}
+
+.welcome-page .mat-card dl.row {
+  margin: 0;
+}
+
+.welcome-page .mat-card dt {
+  font-weight: 500;
+  color: var(--on-surface-variant);
+}
+
+.welcome-page .mat-card dd {
+  color: var(--on-surface);
+}

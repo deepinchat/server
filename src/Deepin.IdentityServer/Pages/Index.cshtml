@@ -2,45 +2,84 @@
 @model Deepin.IdentityServer.Pages.Home.Index
 
 <div class="welcome-page">
-    <h1>
-        <img src="~/duende-logo.svg" class="logo">
-        Welcome to Duende IdentityServer
-        <small class="text-muted">(version @Model.Version)</small>
-    </h1>
+    <div class="mat-page-header">
+        <h1>
+            <span class="material-icons me-2">account_circle</span>
+            Welcome to Deepin Identity Server
+        </h1>
+        <p class="lead">Secure authentication and authorization platform</p>
+        <small class="mat-text-muted">Version @Model.Version</small>
+    </div>
 
-    <ul>
-        <li>
-            IdentityServer publishes a
-            <a href="~/.well-known/openid-configuration">discovery document</a>
-            where you can find metadata and links to all the endpoints, key material, etc.
-        </li>
-        <li>
-            Click <a href="~/diagnostics">here</a> to see the claims for your current session.
-        </li>
-        <li>
-            Click <a href="~/grants">here</a> to manage your stored grants.
-        </li>
-        <li>
-            Click <a href="~/serversidesessions">here</a> to view the server side sessions.
-        </li>
-        <li>
-            Click <a href="~/ciba/all">here</a> to view your pending CIBA login requests.
-        </li>
-        <li>
-            Here are links to the
-            <a href="https://github.com/duendesoftware/IdentityServer">source code repository</a>,
-            and <a href="https://github.com/duendesoftware/samples">ready to use samples</a>.
-        </li>
-    </ul>
+    <div class="row">
+        <div class="col-lg-8 col-md-10 mx-auto">
+            <div class="mat-list">
+                <a href="~/.well-known/openid-configuration" class="mat-list-item">
+                    <span class="material-icons me-3">article</span>
+                    <div>
+                        <strong>Discovery Document</strong>
+                        <div class="mat-text-muted">View metadata and endpoints</div>
+                    </div>
+                </a>
+                
+                <a href="~/diagnostics" class="mat-list-item">
+                    <span class="material-icons me-3">bug_report</span>
+                    <div>
+                        <strong>Current Session</strong>
+                        <div class="mat-text-muted">View claims for your current session</div>
+                    </div>
+                </a>
+                
+                <a href="~/grants" class="mat-list-item">
+                    <span class="material-icons me-3">verified_user</span>
+                    <div>
+                        <strong>Manage Grants</strong>
+                        <div class="mat-text-muted">View and manage stored grants</div>
+                    </div>
+                </a>
+                
+                <a href="~/serversidesessions" class="mat-list-item">
+                    <span class="material-icons me-3">desktop_windows</span>
+                    <div>
+                        <strong>Server Sessions</strong>
+                        <div class="mat-text-muted">View active server side sessions</div>
+                    </div>
+                </a>
+                
+                <a href="~/ciba/all" class="mat-list-item">
+                    <span class="material-icons me-3">phone_android</span>
+                    <div>
+                        <strong>CIBA Requests</strong>
+                        <div class="mat-text-muted">View pending CIBA login requests</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
 
     @if(Model.License != null)
     {
-        <h2>License</h2>
-        <dl>
-            <dt>Serial Number</dt>
-            <dd>@Model.License.SerialNumber</dd>
-            <dt>Expiration</dt>
-            <dd>@Model.License.Expiration!.Value.ToLongDateString()</dd>
-        </dl>
+        <div class="mat-section">
+            <div class="row">
+                <div class="col-lg-6 col-md-8 mx-auto">
+                    <div class="card mat-card">
+                        <div class="card-header">
+                            <h3>
+                                <span class="material-icons me-2">license</span>
+                                License Information
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            <dl class="row">
+                                <dt class="col-sm-4">Serial Number:</dt>
+                                <dd class="col-sm-8">@Model.License.SerialNumber</dd>
+                                <dt class="col-sm-4">Expiration:</dt>
+                                <dd class="col-sm-8">@Model.License.Expiration!.Value.ToLongDateString()</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     }
 </div>
