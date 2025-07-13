@@ -16,8 +16,31 @@ public class ContactQueries(IDbConnectionFactory dbConnectionFactory) : IContact
     public async Task<ContactDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         using var connection = await dbConnectionFactory.CreateContactDbConnectionAsync();
-        var query = "SELECT * FROM contacts WHERE id = @id AND is_deleted = false";
-        return await connection.QuerySingleOrDefaultAsync<ContactDto>(new CommandDefinition(query, new { id }, cancellationToken: cancellationToken));
+        var query =
+        @"SELECT
+                id,
+                name,
+                email,
+                phone_number,
+                created_at,
+                updated_at,
+                is_blocked,
+                is_starred,
+                address,
+                notes,
+                birthday,
+                company,
+                created_by,
+                first_name,
+                last_name,
+                user_id
+        FROM contacts WHERE id = @id AND is_deleted = false";
+        var row = await connection.QuerySingleOrDefaultAsync<dynamic>(new CommandDefinition(query, new { id }, cancellationToken: cancellationToken));
+        if (row == null)
+        {
+            return null;
+        }
+        return MapToContactDto(row);
     }
     public async Task<IPagedResult<ContactDto>> GetPagedAsync(int offset, int limit, string? search = null, CancellationToken cancellationToken = default)
     {
