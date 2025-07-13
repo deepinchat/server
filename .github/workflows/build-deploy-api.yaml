@@ -1,4 +1,4 @@
-name: Docker Image CI for Monolith API
+name: Monolith API Build and Deployment
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
       - 'feature/**'
     paths-ignore:
       - 'src/Deepin.IdentityServer/**'
-      - '.github/workflows/build-deploy-monolith-service.yaml'
+      - '.github/workflows/build-deploy-identity-server.yaml'
 
 jobs:
   docker-build-and-push:

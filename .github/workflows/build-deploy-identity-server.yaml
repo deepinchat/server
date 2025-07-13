@@ -1,4 +1,4 @@
-name: Docker Image CI for Identity Server
+name: Identity Server Build and Deployment
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
       - develop
     paths-ignore:
       - 'src/Deepin.API/**'
-      - '.github/workflows/docker-image-ci-api.yaml'
+      - '.github/workflows/build-deploy-api.yaml'
 
 jobs:
   docker-build-and-push:
