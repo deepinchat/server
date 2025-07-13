@@ -48,7 +48,7 @@ namespace Deepin.Infrastructure.Migrations.Contacts
                 table: "contacts",
                 columns: new[] { "user_id", "created_by" },
                 unique: true)
-                .Annotation("Npgsql:NullsDistinct", false);
+                .Annotation("Npgsql:NullsDistinct", true);
         }
 
         /// <inheritdoc />

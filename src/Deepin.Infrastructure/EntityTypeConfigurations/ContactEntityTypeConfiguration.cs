@@ -16,7 +16,7 @@ public class ContactEntityTypeConfiguration : IEntityTypeConfiguration<Contact>
         builder.Property(x => x.Id).HasColumnName("id").HasColumnType("uuid").HasValueGenerator(typeof(SequentialGuidValueGenerator));
 
         builder.HasIndex(c => new { c.UserId, c.CreatedBy })
-            .AreNullsDistinct(false)
+            .AreNullsDistinct(true)
             .HasDatabaseName("idx_contacts_userid_createdby")
             .IsUnique();
 

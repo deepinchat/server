@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Deepin.Infrastructure.Migrations.Contacts
 {
     [DbContext(typeof(ContactDbContext))]
-    [Migration("20250710144918_InitialCreate")]
+    [Migration("20250711153800_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -109,7 +109,7 @@ namespace Deepin.Infrastructure.Migrations.Contacts
                         .IsUnique()
                         .HasDatabaseName("idx_contacts_userid_createdby");
 
-                    NpgsqlIndexBuilderExtensions.AreNullsDistinct(b.HasIndex("UserId", "CreatedBy"), false);
+                    NpgsqlIndexBuilderExtensions.AreNullsDistinct(b.HasIndex("UserId", "CreatedBy"), true);
 
                     b.ToTable("contacts", "contacts");
                 });

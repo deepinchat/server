@@ -106,7 +106,7 @@ namespace Deepin.Infrastructure.Migrations.Contacts
                         .IsUnique()
                         .HasDatabaseName("idx_contacts_userid_createdby");
 
-                    NpgsqlIndexBuilderExtensions.AreNullsDistinct(b.HasIndex("UserId", "CreatedBy"), false);
+                    NpgsqlIndexBuilderExtensions.AreNullsDistinct(b.HasIndex("UserId", "CreatedBy"), true);
 
                     b.ToTable("contacts", "contacts");
                 });

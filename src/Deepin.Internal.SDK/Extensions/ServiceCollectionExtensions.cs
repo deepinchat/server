@@ -23,14 +23,18 @@ public static class ServiceCollectionExtensions
         if (services == null) throw new ArgumentNullException(nameof(services));
         if (configure == null)
         {
-            configure = options =>
+            configure = static options =>
             {
-                options.BaseUrl = "https://api.deepin.chat";
+                // options.BaseUrl = "https://gateway.deepin.app";
                 options.Timeout = TimeSpan.FromSeconds(60);
                 options.JsonSerializerOptions = new JsonSerializerOptions
                 {
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                     PropertyNameCaseInsensitive = true,
+                    Converters =
+                    {
+                        new JsonStringEnumConverter()
+                    },
                     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
                     WriteIndented = true
                 };
