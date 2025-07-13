@@ -8,6 +8,7 @@ on:
       - 'feature/**'
     paths-ignore:
       - 'src/Deepin.IdentityServer/**'
+      - 'src/Deepin.Internal.SDK/**'
       - '.github/workflows/build-deploy-identity-server.yaml'
 
 jobs:
