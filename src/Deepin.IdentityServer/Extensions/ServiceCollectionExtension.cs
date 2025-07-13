@@ -55,7 +55,7 @@ internal static class ServiceCollectionExtension
         services.ConfigureApplicationCookie(options =>
         {
             // Cookie settings
-            options.Cookie.Name = "deepin.identity";
+            options.Cookie.Name = IdentityServerConstants.DefaultCookieAuthenticationScheme;
             options.Cookie.HttpOnly = true;
             options.ExpireTimeSpan = TimeSpan.FromDays(14);
             options.LoginPath = "/Account/Login";
@@ -91,13 +91,15 @@ internal static class ServiceCollectionExtension
             .AddLicenseSummary();
 
         var authBuilder = services.AddAuthentication();
-        if (configuration["GitHub"] is not null)
+        var gitHubSection = configuration.GetSection("GitHub");
+        if (gitHubSection.Exists())
         {
             authBuilder.AddGitHub(
-                configuration["GitHub:ClientId"] ?? throw new ArgumentNullException("Github ClientId must be not null"),
-                configuration["GitHub:ClientSecret"] ?? throw new ArgumentNullException("Github ClientSecret must be not null"));
+                gitHubSection["ClientId"] ?? throw new ArgumentNullException("Github ClientId must be not null"),
+                gitHubSection["ClientSecret"] ?? throw new ArgumentNullException("Github ClientSecret must be not null"));
         }
-        if (configuration["Google"] is not null)
+        var googleSection = configuration.GetSection("Google");
+        if (googleSection.Exists())
         {
             authBuilder.AddGoogle(options =>
             {
@@ -106,8 +108,8 @@ internal static class ServiceCollectionExtension
                 // register your IdentityServer with Google at https://console.developers.google.com
                 // enable the Google+ API
                 // set the redirect URI to https://localhost:5001/signin-google  
-                options.ClientId = configuration["Google:ClientId"] ?? throw new ArgumentNullException("Google ClientId must be not null");
-                options.ClientSecret = configuration["Google:ClientSecret"] ?? throw new ArgumentNullException("Google ClientSecret must be not null");
+                options.ClientId = googleSection["ClientId"] ?? throw new ArgumentNullException("Google ClientId must be not null");
+                options.ClientSecret = googleSection["ClientSecret"] ?? throw new ArgumentNullException("Google ClientSecret must be not null");
             });
         }
 
