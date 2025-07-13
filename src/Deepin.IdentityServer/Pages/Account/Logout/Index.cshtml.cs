@@ -1,9 +1,12 @@
+using Deepin.Domain.Identity;
 using Duende.IdentityModel;
+using Duende.IdentityServer;
 using Duende.IdentityServer.Events;
 using Duende.IdentityServer.Extensions;
 using Duende.IdentityServer.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -15,14 +18,16 @@ public class Index : PageModel
 {
     private readonly IIdentityServerInteractionService _interaction;
     private readonly IEventService _events;
+    private readonly SignInManager<User> _signInManager;
 
     [BindProperty]
     public string? LogoutId { get; set; }
 
-    public Index(IIdentityServerInteractionService interaction, IEventService events)
+    public Index(IIdentityServerInteractionService interaction, IEventService events, SignInManager<User> signInManager)
     {
         _interaction = interaction;
         _events = events;
+        _signInManager = signInManager;
     }
 
     public async Task<IActionResult> OnGet(string? logoutId)
@@ -66,7 +71,7 @@ public class Index : PageModel
             LogoutId ??= await _interaction.CreateLogoutContextAsync();
 
             // delete local authentication cookie
-            await HttpContext.SignOutAsync();
+            await _signInManager.SignOutAsync();
 
             // see if we need to trigger federated logout
             var idp = User.FindFirst(JwtClaimTypes.IdentityProvider)?.Value;
@@ -76,7 +81,7 @@ public class Index : PageModel
             Telemetry.Metrics.UserLogout(idp);
 
             // if it's a local login we can ignore this workflow
-            if (idp != null && idp != Duende.IdentityServer.IdentityServerConstants.LocalIdentityProvider)
+            if (idp is not null and not IdentityServerConstants.LocalIdentityProvider)
             {
                 // we need to see if the provider supports external logout
                 if (await HttpContext.GetSchemeSupportsSignOutAsync(idp))
