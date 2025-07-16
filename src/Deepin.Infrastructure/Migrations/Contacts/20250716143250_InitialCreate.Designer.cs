@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Deepin.Infrastructure.Migrations.Contacts
 {
     [DbContext(typeof(ContactDbContext))]
-    [Migration("20250711153800_InitialCreate")]
+    [Migration("20250716143250_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -33,18 +33,6 @@ namespace Deepin.Infrastructure.Migrations.Contacts
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<string>("Address")
-                        .HasColumnType("text")
-                        .HasColumnName("address");
-
-                    b.Property<string>("Birthday")
-                        .HasColumnType("text")
-                        .HasColumnName("birthday");
-
-                    b.Property<string>("Company")
-                        .HasColumnType("text")
-                        .HasColumnName("company");
-
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -53,35 +41,17 @@ namespace Deepin.Infrastructure.Migrations.Contacts
                         .HasColumnType("uuid")
                         .HasColumnName("created_by");
 
-                    b.Property<string>("Email")
-                        .HasColumnType("text")
-                        .HasColumnName("email");
-
-                    b.Property<string>("FirstName")
-                        .HasColumnType("text")
-                        .HasColumnName("first_name");
-
                     b.Property<bool>("IsBlocked")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(false)
                         .HasColumnName("is_blocked");
 
-                    b.Property<bool>("IsDeleted")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_deleted");
-
                     b.Property<bool>("IsStarred")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(false)
                         .HasColumnName("is_starred");
-
-                    b.Property<string>("LastName")
-                        .HasColumnType("text")
-                        .HasColumnName("last_name");
 
                     b.Property<string>("Name")
                         .HasColumnType("text")
@@ -91,25 +61,15 @@ namespace Deepin.Infrastructure.Migrations.Contacts
                         .HasColumnType("text")
                         .HasColumnName("notes");
 
-                    b.Property<string>("PhoneNumber")
-                        .HasColumnType("text")
-                        .HasColumnName("phone_number");
-
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
 
-                    b.Property<Guid?>("UserId")
+                    b.Property<Guid>("UserId")
                         .HasColumnType("uuid")
                         .HasColumnName("user_id");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("UserId", "CreatedBy")
-                        .IsUnique()
-                        .HasDatabaseName("idx_contacts_userid_createdby");
-
-                    NpgsqlIndexBuilderExtensions.AreNullsDistinct(b.HasIndex("UserId", "CreatedBy"), true);
 
                     b.ToTable("contacts", "contacts");
                 });

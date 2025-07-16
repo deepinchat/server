@@ -19,22 +19,15 @@ public class ContactQueries(IDbConnectionFactory dbConnectionFactory) : IContact
         var query =
         @"SELECT
                 id,
+                user_id,
                 name,
-                email,
-                phone_number,
-                created_at,
-                updated_at,
+                notes,
                 is_blocked,
                 is_starred,
-                address,
-                notes,
-                birthday,
-                company,
                 created_by,
-                first_name,
-                last_name,
-                user_id
-        FROM contacts WHERE id = @id AND is_deleted = false";
+                created_at,
+                updated_at
+        FROM contacts WHERE id = @id";
         var row = await connection.QuerySingleOrDefaultAsync<dynamic>(new CommandDefinition(query, new { id }, cancellationToken: cancellationToken));
         if (row == null)
         {
@@ -46,7 +39,7 @@ public class ContactQueries(IDbConnectionFactory dbConnectionFactory) : IContact
     {
         var condations = new List<string>
             {
-                @"is_deleted IS FALSE"
+                @"1 = 1" // Always true condition to simplify query building
             };
         if (!string.IsNullOrWhiteSpace(search))
         {
@@ -56,21 +49,14 @@ public class ContactQueries(IDbConnectionFactory dbConnectionFactory) : IContact
         var query = $@"
             SELECT
                 id,
+                user_id,
                 name,
-                email,
-                phone_number,
-                created_at,
-                updated_at,
+                notes,
                 is_blocked,
                 is_starred,
-                address,
-                notes,
-                birthday,
-                company,
                 created_by,
-                first_name,
-                last_name,
-                user_id
+                created_at,
+                updated_at
             FROM 
                 contacts
             WHERE 
@@ -102,21 +88,14 @@ public class ContactQueries(IDbConnectionFactory dbConnectionFactory) : IContact
         return new ContactDto
         {
             Id = row.id,
+            UserId = row.user_id,
             Name = row.name,
-            Email = row.email,
-            PhoneNumber = row.phone_number,
-            CreatedAt = row.created_at,
-            UpdatedAt = row.updated_at,
+            Notes = row.notes,
             IsBlocked = row.is_blocked,
             IsStarred = row.is_starred,
-            Address = row.address,
-            Notes = row.notes,
-            Birthday = row.birthday,
-            Company = row.company,
-            CreatedBy = row.created_by,
-            FirstName = row.first_name,
-            LastName = row.last_name,
-            UserId = row.user_id
+            CreatedAt = row.created_at,
+            UpdatedAt = row.updated_at,
+            CreatedBy = row.created_by
         };
     }
 }

@@ -1,5 +1,3 @@
-using System;
-
 namespace Deepin.Application.Constants;
 
 public static class SystemMessageKeys

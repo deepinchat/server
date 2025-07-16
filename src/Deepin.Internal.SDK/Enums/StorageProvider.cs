@@ -1,5 +1,3 @@
-using System;
-
 namespace Deepin.Internal.SDK.Enums;
 
 

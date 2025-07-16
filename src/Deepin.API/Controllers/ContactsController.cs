@@ -1,6 +1,5 @@
 using Deepin.Application.Commands.Contacts;
 using Deepin.Application.DTOs.Contacts;
-using Deepin.Application.Interfaces;
 using Deepin.Application.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -9,8 +8,7 @@ namespace Deepin.API.Controllers
 {
     public class ContactsController(
         IMediator mediator,
-        IContactQueries contactQueries,
-        IUserContext userContext) : ApiControllerBase
+        IContactQueries contactQueries) : ApiControllerBase
     {
         [HttpGet("{id:guid}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -28,9 +26,9 @@ namespace Deepin.API.Controllers
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Create([FromBody] ContactRequest request, CancellationToken cancellationToken)
+        public async Task<IActionResult> Create([FromBody] CreateContactRequest request, CancellationToken cancellationToken)
         {
-            var contact = await mediator.Send(new CreateContactCommand(userContext.UserId, request), cancellationToken);
+            var contact = await mediator.Send(new CreateContactCommand(request), cancellationToken);
             if (contact == null)
             {
                 return BadRequest("Failed to create contact.");
@@ -42,7 +40,7 @@ namespace Deepin.API.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Update(Guid id, [FromBody] ContactRequest request, CancellationToken cancellationToken)
+        public async Task<IActionResult> Update(Guid id, [FromBody] UpdateContactRequest request, CancellationToken cancellationToken)
         {
             var contact = await contactQueries.GetByIdAsync(id, cancellationToken);
             if (contact is null)
@@ -65,6 +63,7 @@ namespace Deepin.API.Controllers
             }
             return NoContent();
         }
+
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetPaged(int offset, int limit, string? search = null, CancellationToken cancellationToken = default)

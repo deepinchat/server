@@ -1,6 +1,5 @@
 using System.Reflection;
 using Duende.IdentityServer;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace Deepin.IdentityServer.Pages.Home;

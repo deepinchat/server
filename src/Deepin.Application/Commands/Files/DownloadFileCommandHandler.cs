@@ -4,9 +4,9 @@ using MediatR;
 
 namespace Deepin.Application.Commands.Files;
 
-public class DownloadFileCommandHandler(IFileQueries fileQueries, IFileStorage fileStorage) : IRequestHandler<DownloadFileCommand, Stream>
+public class DownloadFileCommandHandler(IFileQueries fileQueries, IFileStorage fileStorage) : IRequestHandler<DownloadFileCommand, Stream?>
 {
-    public async Task<Stream> Handle(DownloadFileCommand request, CancellationToken cancellationToken)
+    public async Task<Stream?> Handle(DownloadFileCommand request, CancellationToken cancellationToken)
     {
         var file = await fileQueries.GetByIdAsync(request.FileId, cancellationToken);
         if (file is null)

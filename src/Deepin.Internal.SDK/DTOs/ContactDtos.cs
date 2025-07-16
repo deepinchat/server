@@ -1,37 +1,20 @@
-using System;
-
 namespace Deepin.Internal.SDK.DTOs;
 
-public record ContactRequest(
-    Guid? UserId,
-    string? Name,
-    string? FirstName,
-    string? LastName,
-    string? Company,
-    string? Birthday,
-    string? Email,
-    string? PhoneNumber,
-    string? Address,
-    string? Notes);
+public record CreateContactRequest(Guid UserId, string? Name, string? Notes);
+
+public record UpdateContactRequest(string? Name, string? Notes);
 
 public class ContactDto
 {
-    public Guid Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string? FirstName { get; set; }
-    public string? LastName { get; set; }
-    public string? Company { get; set; }
-    public string? Birthday { get; set; }
-    public string? Email { get; set; }
-    public string? PhoneNumber { get; set; }
-    public DateTimeOffset CreatedAt { get; set; }
-    public DateTimeOffset UpdatedAt { get; set; }
-    public bool IsBlocked { get; set; }
-    public bool IsStarred { get; set; }
-    public string? Address { get; set; }
-    public string? Notes { get; set; }
-    public Guid CreatedBy { get; set; }
-    public Guid? UserId { get; set; }
+    public Guid Id { get; init; }
+    public Guid UserId { get; init; }
+    public string? Name { get; init; }
+    public string? Notes { get; init; }
+    public bool IsBlocked { get; init; }
+    public bool IsStarred { get; init; }
+    public Guid CreatedBy { get; init; }
+    public DateTimeOffset CreatedAt { get; init; }
+    public DateTimeOffset UpdatedAt { get; init; }
 }
 
 public class SearchContactRequest : PagedQuery;

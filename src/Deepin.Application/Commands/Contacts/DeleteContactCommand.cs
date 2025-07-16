@@ -1,4 +1,3 @@
-using System;
 using Deepin.Domain.ContactAggregate;
 using MediatR;
 
@@ -15,9 +14,8 @@ public class DeleteContactCommandHandler(IContactRepository contactRepository) :
         {
             return false; // Contact not found
         }
-        contact.Delete();
-        await contactRepository.UpdateAsync(contact);
+        await contactRepository.DeleteAsync(contact);
         await contactRepository.UnitOfWork.SaveEntitiesAsync(cancellationToken);
-        return true; // Contact deleted successfully
+        return true;
     }
 }
