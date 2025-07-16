@@ -1,39 +1,127 @@
-﻿.welcome-page .logo {
+﻿/* ============================================================================
+   Legacy Styles for Deepin Identity Server
+   These styles are kept for backward compatibility and specific customizations
+   ============================================================================ */
+
+.welcome-page .logo {
   width: 64px;
+  height: 64px;
+  object-fit: contain;
 }
 
 .icon-banner {
   width: 32px;
+  height: 32px;
+  object-fit: contain;
 }
 
+/* Ensure proper spacing for fixed navbar - handled by material-design.css */
+/* body padding is now managed by .mat-content class */
+
 .body-container {
-  margin-top: 60px;
+  margin-top: 0;
   padding-bottom: 40px;
 }
 
+/* Legacy list styles - updated for material design */
 .welcome-page li {
   list-style: none;
   padding: 4px;
 }
 
+/* Hidden iframe for logout */
 .logged-out-page iframe {
   display: none;
   width: 0;
   height: 0;
 }
 
+/* Grant management page specific styles */
 .grants-page .card {
   margin-top: 20px;
-  border-bottom: 1px solid lightgray;
 }
+
 .grants-page .card .card-title {
   font-size: 120%;
-  font-weight: bold;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
 }
+
 .grants-page .card .card-title img {
-  width: 100px;
-  height: 100px;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--border-radius-md);
+  object-fit: contain;
 }
+
 .grants-page .card label {
-  font-weight: bold;
+  font-weight: 500;
+  color: var(--on-surface-variant);
+}
+
+/* Material Icons alignment fixes */
+.material-icons {
+  vertical-align: middle;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 768px) {
+  body {
+    padding-top: 56px;
+  }
+  
+  .welcome-page .logo {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .icon-banner {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--outline-variant);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--outline);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--on-surface-variant);
+}
+
+/* Focus visible improvements */
+*:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Print styles */
+@media print {
+  .mat-navbar,
+  .nav-page {
+    display: none !important;
+  }
+  
+  body {
+    padding-top: 0 !important;
+  }
+  
+  .mat-card {
+    box-shadow: none !important;
+    border: 1px solid #000 !important;
+  }
 }

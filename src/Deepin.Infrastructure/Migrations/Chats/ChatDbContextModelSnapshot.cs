@@ -23,7 +23,7 @@ namespace Deepin.Infrastructure.Migrations.Chats
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Deepin.Domain.ChatAggregate.Chat", b =>
+            modelBuilder.Entity("Deepin.Domain.ChatAggregate.ChatBase", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -38,22 +38,77 @@ namespace Deepin.Infrastructure.Migrations.Chats
                         .HasColumnType("uuid")
                         .HasColumnName("created_by");
 
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean")
                         .HasColumnName("is_deleted");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("type");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
 
+                    b.Property<int>("type")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.ToTable("chats", "chats");
+
+                    b.HasDiscriminator<int>("type");
+
+                    b.UseTphMappingStrategy();
+                });
+
+            modelBuilder.Entity("Deepin.Domain.ChatAggregate.ChatJoinRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ChatId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("chat_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<string>("Message")
+                        .HasColumnType("text")
+                        .HasColumnName("message");
+
+                    b.Property<DateTimeOffset?>("ReviewedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("reviewed_at");
+
+                    b.Property<Guid?>("ReviewedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reviewed_by");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChatId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("chat_join_requests", "chats");
                 });
 
             modelBuilder.Entity("Deepin.Domain.ChatAggregate.ChatMember", b =>
@@ -63,9 +118,25 @@ namespace Deepin.Infrastructure.Migrations.Chats
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<Guid>("ChatId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("chat_id");
+
                     b.Property<string>("DisplayName")
                         .HasColumnType("text")
                         .HasColumnName("display_name");
+
+                    b.Property<bool>("IsBanned")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_banned");
+
+                    b.Property<bool>("IsMuted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_muted");
 
                     b.Property<DateTimeOffset>("JoinedAt")
                         .HasColumnType("timestamp with time zone")
@@ -84,14 +155,53 @@ namespace Deepin.Infrastructure.Migrations.Chats
                         .HasColumnType("uuid")
                         .HasColumnName("user_id");
 
-                    b.Property<Guid>("chat_id")
-                        .HasColumnType("uuid");
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChatId");
+
+                    b.ToTable("chat_members", "chats");
+                });
+
+            modelBuilder.Entity("Deepin.Domain.ChatAggregate.ChatMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ChatId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("chat_id");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_deleted");
+
+                    b.Property<Guid>("MessageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("message_id");
+
+                    b.Property<Guid?>("SenderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("sender_id");
+
+                    b.Property<DateTimeOffset>("SentAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("sent_at");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("type");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("chat_id");
+                    b.HasIndex("ChatId", "MessageId")
+                        .IsUnique();
 
-                    b.ToTable("chat_members", "chats");
+                    b.ToTable("chat_messages", "chats");
                 });
 
             modelBuilder.Entity("Deepin.Domain.ChatAggregate.ChatReadStatus", b =>
@@ -109,7 +219,7 @@ namespace Deepin.Infrastructure.Migrations.Chats
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_read_at");
 
-                    b.Property<Guid>("LastReadMessageId")
+                    b.Property<Guid?>("LastReadMessageId")
                         .HasColumnType("uuid")
                         .HasColumnName("last_read_message_id");
 
@@ -124,67 +234,134 @@ namespace Deepin.Infrastructure.Migrations.Chats
                     b.ToTable("chat_read_statuses", "chats");
                 });
 
-            modelBuilder.Entity("Deepin.Domain.ChatAggregate.Chat", b =>
+            modelBuilder.Entity("Deepin.Domain.ChatAggregate.ChatSettings", b =>
                 {
-                    b.OwnsOne("Deepin.Domain.ChatAggregate.GroupInfo", "GroupInfo", b1 =>
-                        {
-                            b1.Property<Guid>("ChatId")
-                                .HasColumnType("uuid");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
 
-                            b1.Property<Guid?>("AvatarFileId")
-                                .HasColumnType("uuid")
-                                .HasColumnName("avatar_file_id");
+                    b.Property<Guid>("ChatId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("chat_id");
 
-                            b1.Property<string>("Description")
-                                .HasColumnType("text")
-                                .HasColumnName("description");
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
 
-                            b1.Property<bool>("IsPublic")
-                                .HasColumnType("boolean")
-                                .HasColumnName("is_public");
+                    b.Property<bool>("IsMuted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_muted");
 
-                            b1.Property<string>("Name")
-                                .HasColumnType("text")
-                                .HasColumnName("name");
+                    b.Property<bool>("IsPinned")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_pinned");
 
-                            b1.Property<string>("UserName")
-                                .HasColumnType("text")
-                                .HasColumnName("user_name");
+                    b.Property<string>("NotificationLevel")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("All")
+                        .HasColumnName("notification_level");
 
-                            b1.HasKey("ChatId");
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
 
-                            b1.ToTable("chats", "chats");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
 
-                            b1.WithOwner()
-                                .HasForeignKey("ChatId");
-                        });
+                    b.HasKey("Id");
 
-                    b.Navigation("GroupInfo");
+                    b.HasIndex("ChatId");
+
+                    b.ToTable("chat_settings", "chats");
+                });
+
+            modelBuilder.Entity("Deepin.Domain.ChatAggregate.DirectChat", b =>
+                {
+                    b.HasBaseType("Deepin.Domain.ChatAggregate.ChatBase");
+
+                    b.HasDiscriminator().HasValue(0);
+                });
+
+            modelBuilder.Entity("Deepin.Domain.ChatAggregate.GroupChat", b =>
+                {
+                    b.HasBaseType("Deepin.Domain.ChatAggregate.ChatBase");
+
+                    b.Property<Guid?>("AvatarFileId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("avatar_file_id");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text")
+                        .HasColumnName("description");
+
+                    b.Property<bool>("IsPublic")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_public");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.Property<string>("UserName")
+                        .HasColumnType("text")
+                        .HasColumnName("user_name");
+
+                    b.HasDiscriminator().HasValue(1);
                 });
 
             modelBuilder.Entity("Deepin.Domain.ChatAggregate.ChatMember", b =>
                 {
-                    b.HasOne("Deepin.Domain.ChatAggregate.Chat", null)
+                    b.HasOne("Deepin.Domain.ChatAggregate.ChatBase", null)
                         .WithMany("Members")
-                        .HasForeignKey("chat_id")
+                        .HasForeignKey("ChatId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Deepin.Domain.ChatAggregate.ChatMessage", b =>
+                {
+                    b.HasOne("Deepin.Domain.ChatAggregate.ChatBase", null)
+                        .WithMany("Messages")
+                        .HasForeignKey("ChatId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
             modelBuilder.Entity("Deepin.Domain.ChatAggregate.ChatReadStatus", b =>
                 {
-                    b.HasOne("Deepin.Domain.ChatAggregate.Chat", null)
+                    b.HasOne("Deepin.Domain.ChatAggregate.ChatBase", null)
                         .WithMany("ReadStatuses")
                         .HasForeignKey("ChatId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Deepin.Domain.ChatAggregate.Chat", b =>
+            modelBuilder.Entity("Deepin.Domain.ChatAggregate.ChatSettings", b =>
+                {
+                    b.HasOne("Deepin.Domain.ChatAggregate.ChatBase", null)
+                        .WithMany("Settings")
+                        .HasForeignKey("ChatId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Deepin.Domain.ChatAggregate.ChatBase", b =>
                 {
                     b.Navigation("Members");
 
+                    b.Navigation("Messages");
+
                     b.Navigation("ReadStatuses");
+
+                    b.Navigation("Settings");
                 });
 #pragma warning restore 612, 618
         }

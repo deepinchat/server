@@ -18,7 +18,7 @@ namespace Deepin.Infrastructure.Migrations.Contacts
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("contacts")
-                .HasAnnotation("ProductVersion", "9.0.2")
+                .HasAnnotation("ProductVersion", "9.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -45,6 +45,10 @@ namespace Deepin.Infrastructure.Migrations.Contacts
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
 
                     b.Property<string>("Email")
                         .HasColumnType("text")
@@ -76,13 +80,13 @@ namespace Deepin.Infrastructure.Migrations.Contacts
                         .HasColumnType("text")
                         .HasColumnName("last_name");
 
+                    b.Property<string>("Name")
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
                     b.Property<string>("Notes")
                         .HasColumnType("text")
                         .HasColumnName("notes");
-
-                    b.Property<Guid>("OwnerId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("owner_id");
 
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("text")
@@ -97,6 +101,12 @@ namespace Deepin.Infrastructure.Migrations.Contacts
                         .HasColumnName("user_id");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId", "CreatedBy")
+                        .IsUnique()
+                        .HasDatabaseName("idx_contacts_userid_createdby");
+
+                    NpgsqlIndexBuilderExtensions.AreNullsDistinct(b.HasIndex("UserId", "CreatedBy"), true);
 
                     b.ToTable("contacts", "contacts");
                 });

@@ -16,10 +16,5 @@ public class MessageReactionEntityTypeConfiguration : IEntityTypeConfiguration<M
         builder.Property(x => x.Emoji).HasColumnName("emoji").HasColumnType("text").IsRequired();
         builder.Property(x => x.CreatedAt).HasColumnName("created_at").HasColumnType("timestamp with time zone").ValueGeneratedOnAdd().HasDefaultValueSql("CURRENT_TIMESTAMP AT TIME ZONE 'UTC'");
         builder.HasIndex(x => new { x.MessageId, x.UserId }).IsUnique();
-
-        builder.HasOne<Message>()
-            .WithMany()
-            .HasForeignKey(x => x.MessageId)
-            .OnDelete(DeleteBehavior.Cascade);
     }
 }

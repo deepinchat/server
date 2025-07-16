@@ -1,7 +1,10 @@
 ﻿@if (ViewContext.ModelState.IsValid == false)
 {
-    <div class="alert alert-danger">
-        <strong>Error</strong>
-        <div asp-validation-summary="All" class="danger"></div>
+    <div class="alert mat-alert mat-alert-danger">
+        <span class="material-icons me-2">error</span>
+        <div>
+            <strong>Please fix the following errors:</strong>
+            <div asp-validation-summary="All" class="mt-2"></div>
+        </div>
     </div>
 }

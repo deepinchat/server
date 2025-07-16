@@ -1,7 +1,9 @@
 ﻿using Deepin.Application.Interfaces;
 using Deepin.Domain.ChatAggregate;
+using Deepin.Domain.ContactAggregate;
 using Deepin.Domain.Emails;
 using Deepin.Domain.FileAggregate;
+using Deepin.Domain.Identity;
 using Deepin.Domain.MessageAggregate;
 using Deepin.Infrastructure.Caching;
 using Deepin.Infrastructure.Configurations;
@@ -130,7 +132,11 @@ public static class ServiceCollectionExtensions
         {
             options.UseNpgsql(connectionString);
         });
-        services.AddScoped<IChatRepository, ChatRepository>();
+        services.AddScoped<IDirectChatRepository, DirectChatRepository>();
+        services.AddScoped<IGroupChatRepository, GroupChatRepository>();
+        services.AddScoped<IChatReadStatusRepository, ChatReadStatusRepository>();
+        services.AddScoped<IChatSettingsRepository, ChatSettingsRepository>();
+        services.AddScoped<IChatMessageRepository, ChatMessageRepository>();
         return services;
     }
     public static IServiceCollection AddContactDbContext(this IServiceCollection services, string connectionString)
@@ -143,7 +149,7 @@ public static class ServiceCollectionExtensions
         {
             options.UseNpgsql(connectionString);
         });
-        // services.AddScoped<IContactRepository, Contactr>();
+        services.AddScoped<IContactRepository, ContactRepository>();
         return services;
     }
     public static IServiceCollection AddStorageDbContext(this IServiceCollection services, string connectionString)
@@ -265,6 +271,7 @@ public static class ServiceCollectionExtensions
                 sql.EnableRetryOnFailure(3);
             });
         }, ServiceLifetime.Scoped);
+        services.AddScoped<IUserRepository, UserRepository>();
         return services;
     }
     public static IServiceCollection AddIdentityServerPersistedGrantDbContext(this IServiceCollection services, string connectionString)

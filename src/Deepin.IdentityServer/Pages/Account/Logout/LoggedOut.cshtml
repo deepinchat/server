@@ -2,18 +2,41 @@
 @model Deepin.IdentityServer.Pages.Logout.LoggedOut
 
 <div class="logged-out-page">
-    <h1>
-        Logout
-        <small>You are now logged out</small>
-    </h1>
+    <div class="mat-page-header">
+        <span class="material-icons mb-3" style="font-size: 64px; color: var(--primary);">check_circle</span>
+        <h1>Signed Out Successfully</h1>
+        <p class="lead">You have been signed out of your account</p>
+    </div>
 
-    @if (Model.View.PostLogoutRedirectUri != null)
-    {
-        <div>
-            Click <a class="PostLogoutRedirectUri" href="@Model.View.PostLogoutRedirectUri">here</a> to return to the
-            <span>@Model.View.ClientName</span> application.
+    <div class="row justify-content-center">
+        <div class="col-lg-5 col-md-7 col-sm-9">
+            @if (Model.View.PostLogoutRedirectUri != null)
+            {
+                <div class="card mat-card">
+                    <div class="card-body text-center">
+                        <p class="mb-3">You can now return to the application:</p>
+                        <a class="btn mat-button mat-button-primary PostLogoutRedirectUri" 
+                           href="@Model.View.PostLogoutRedirectUri">
+                            <span class="material-icons me-1">arrow_back</span>
+                            Return to @Model.View.ClientName
+                        </a>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="card mat-card">
+                    <div class="card-body text-center">
+                        <p class="mat-text-muted mb-3">You can now close this window or sign in again.</p>
+                        <a asp-page="/Account/Login/Index" class="btn mat-button mat-button-outline">
+                            <span class="material-icons me-1">login</span>
+                            Sign In Again
+                        </a>
+                    </div>
+                </div>
+            }
         </div>
-    }
+    </div>
 
     @if (Model.View.SignOutIframeUrl != null)
     {

@@ -67,4 +67,13 @@ public class NpgsqlDbConnectionFactory(ConnectionStringOptions connectionStrings
             throw;
         }
     }
+
+    public async Task<IDbConnection> CreateContactDbConnectionAsync(CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrEmpty(connectionStrings.Contact))
+        {
+            throw new ArgumentException($"Contact Connection string not found.");
+        }
+        return await CreateDbConnectionAsync(connectionStrings.Contact, ContactDbContext.DEFAULT_SCHEMA, cancellationToken);
+    }
 }

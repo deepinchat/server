@@ -2,16 +2,37 @@
 @model Deepin.IdentityServer.Pages.Logout.Index
 
 <div class="logout-page">
-    <div class="lead">
-        <h1>Logout</h1>
-        <p>Would you like to logout of IdentityServer?</p>
+    <div class="mat-page-header">
+        <h1>Sign Out</h1>
+        <p class="lead">Are you sure you want to sign out of your account?</p>
     </div>
 
-    <form asp-page="/Account/Logout/Index">
-        <input type="hidden" name="logoutId" value="@Model.LogoutId"  />
-        
-        <div class="form-group">
-            <button class="btn btn-primary">Yes</button>
+    <div class="row justify-content-center">
+        <div class="col-lg-4 col-md-6 col-sm-8">
+            <div class="card mat-card">
+                <div class="card-body text-center">
+                    <span class="material-icons mb-3" style="font-size: 48px; color: var(--on-surface-variant);">logout</span>
+                    
+                    <p class="mat-text-muted mb-4">
+                        You will be signed out from this device and may need to sign in again to access your account.
+                    </p>
+                    
+                    <form asp-page="/Account/Logout/Index">
+                        <input type="hidden" name="logoutId" value="@Model.LogoutId" />
+                        
+                        <div class="d-grid gap-2">
+                            <button class="btn mat-button mat-button-primary">
+                                <span class="material-icons me-1">logout</span>
+                                Yes, Sign Out
+                            </button>
+                            <a href="~/" class="btn mat-button mat-button-secondary">
+                                <span class="material-icons me-1">cancel</span>
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
-    </form>
+    </div>
 </div>

@@ -8,8 +8,8 @@ public class ChatMappingProfile : Profile
 {
     public ChatMappingProfile()
     {
-        CreateMap<Chat, ChatDto>(MemberList.Destination);
-        CreateMap<GroupInfo, ChatGroupInfoDto>(MemberList.Destination);
+        CreateMap<DirectChat, DirectChatDto>(MemberList.Destination);
+        CreateMap<GroupChat, GroupChatDto>(MemberList.Destination);
         CreateMap<ChatMember, ChatMemberDto>(MemberList.Destination);
     }
 }

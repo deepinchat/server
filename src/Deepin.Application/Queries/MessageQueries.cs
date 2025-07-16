@@ -2,7 +2,6 @@ using Dapper;
 using Deepin.Application.DTOs;
 using Deepin.Application.DTOs.Messages;
 using Deepin.Application.Interfaces;
-using Deepin.Application.Requests.Messages;
 using Deepin.Domain.MessageAggregate;
 using Newtonsoft.Json;
 
@@ -12,33 +11,21 @@ public interface IMessageQueries
 {
     Task<MessageDto?> GetMessageAsync(Guid id, CancellationToken cancellationToken = default);
     Task<IEnumerable<MessageDto>> GetMessagesAsync(Guid[] ids, CancellationToken cancellationToken = default);
-    Task<IPagedResult<MessageDto>> SearchMessagesAsync(int limit, int offset, string? search = null, Guid? chatId = null, Guid? userId = null, CancellationToken cancellationToken = default);
     Task<Guid?> GetLastIdAsync(Guid chatId, CancellationToken cancellationToken = default);
     Task<IEnumerable<LastMessageDto>> GetLastMessageIdsAsync(Guid[] chatIds, CancellationToken cancellationToken = default);
-    Task<int> GetUnreadCountAsync(Guid chatId, DateTimeOffset? lastReadAt = null, CancellationToken cancellationToken = default);
+    Task<IPagedResult<MessageDto>> SearchMessagesAsync(
+        int limit,
+        int offset,
+        string? search = null,
+        Guid? chatId = null,
+        Guid? userId = null,
+        SortDirection sortBy = SortDirection.Desc,
+        DateTimeOffset? readAt = null,
+        CancellationToken cancellationToken = default);
 }
 
 public class MessageQueries(IDbConnectionFactory dbConnectionFactory) : IMessageQueries
 {
-    public async Task<int> GetUnreadCountAsync(Guid chatId, DateTimeOffset? lastReadAt = null, CancellationToken cancellationToken = default)
-    {
-        using (var connection = await dbConnectionFactory.CreateMessageDbConnectionAsync(cancellationToken))
-        {
-            var sql = @"
-                SELECT 
-                    COUNT(*)
-                FROM 
-                    messages
-                WHERE 
-                    chat_id = @chatId AND NOT is_deleted";
-            if (lastReadAt.HasValue)
-            {
-                sql += " AND created_at > @lastReadAt";
-            }
-            var command = new CommandDefinition(sql, new { chatId, lastReadAt }, cancellationToken: cancellationToken);
-            return await connection.ExecuteScalarAsync<int>(command);
-        }
-    }
     public async Task<IEnumerable<LastMessageDto>> GetLastMessageIdsAsync(Guid[] chatIds, CancellationToken cancellationToken = default)
     {
         using (var connection = await dbConnectionFactory.CreateMessageDbConnectionAsync(cancellationToken))
@@ -74,7 +61,7 @@ public class MessageQueries(IDbConnectionFactory dbConnectionFactory) : IMessage
                 SELECT
                     m.id,
                     m.type,
-                    m.text,
+                    m.content,
                     m.created_at,
                     m.updated_at,
                     m.user_id,
@@ -113,7 +100,15 @@ public class MessageQueries(IDbConnectionFactory dbConnectionFactory) : IMessage
         return messages?.FirstOrDefault();
     }
 
-    public async Task<IPagedResult<MessageDto>> SearchMessagesAsync(int limit, int offset, string? search = null, Guid? chatId = null, Guid? userId = null, CancellationToken cancellationToken = default)
+    public async Task<IPagedResult<MessageDto>> SearchMessagesAsync(
+        int limit,
+        int offset,
+        string? search = null,
+        Guid? chatId = null,
+        Guid? userId = null,
+        SortDirection sortBy = SortDirection.Desc,
+        DateTimeOffset? readAt = null,
+        CancellationToken cancellationToken = default)
     {
         using (var connection = await dbConnectionFactory.CreateMessageDbConnectionAsync(cancellationToken))
         {
@@ -122,7 +117,7 @@ public class MessageQueries(IDbConnectionFactory dbConnectionFactory) : IMessage
                 SELECT
                     m.id,
                     m.type,
-                    m.text,
+                    m.content,
                     m.created_at,
                     m.updated_at,
                     m.user_id,
@@ -159,7 +154,18 @@ public class MessageQueries(IDbConnectionFactory dbConnectionFactory) : IMessage
             }
             if (!string.IsNullOrWhiteSpace(search))
             {
-                condations.Add("m.text ILIKE @search");
+                condations.Add("m.content ILIKE @search");
+            }
+            if (readAt.HasValue)
+            {
+                if (sortBy == SortDirection.Desc)
+                {
+                    condations.Add("m.created_at <= @readAt");
+                }
+                else
+                {
+                    condations.Add("m.created_at >= @readAt");
+                }
             }
             if (condations.Any())
             {
@@ -172,7 +178,8 @@ public class MessageQueries(IDbConnectionFactory dbConnectionFactory) : IMessage
             {
                 return new PagedResult<MessageDto>();
             }
-            querySql += " ORDER BY m.created_at DESC LIMIT @limit OFFSET @offset";
+            querySql += " ORDER BY m.created_at " + sortBy.ToString().ToUpperInvariant() ;
+            querySql += " LIMIT @limit OFFSET @offset";
             var command = new CommandDefinition(querySql, new { limit, offset, chatId, userId, search = $"%{search}%" }, cancellationToken: cancellationToken);
             var rows = await connection.QueryAsync<dynamic>(command);
             var messages = rows.GroupBy(row => row.id).Select(MapMessageDto);
@@ -191,7 +198,7 @@ public class MessageQueries(IDbConnectionFactory dbConnectionFactory) : IMessage
             UpdatedAt = message.updated_at,
             UserId = message.user_id,
             ChatId = message.chat_id,
-            Text = message.text,
+            Content = message.content,
             IsDeleted = message.is_deleted,
             IsRead = message.is_read,
             IsEdited = message.is_edited,

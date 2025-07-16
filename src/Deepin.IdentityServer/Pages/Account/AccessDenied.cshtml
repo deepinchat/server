@@ -2,9 +2,34 @@
 @model Deepin.IdentityServer.Pages.Account.AccessDeniedModel
 @{
 }
-<div class="row">
-    <div class="col">
+
+<div class="access-denied-page">
+    <div class="mat-page-header">
+        <span class="material-icons mb-3" style="font-size: 64px; color: var(--warn);">block</span>
         <h1>Access Denied</h1>
-        <p>You do not have permission to access that resource.</p>
+        <p class="lead">You don't have permission to access this resource</p>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-5 col-md-7 col-sm-9">
+            <div class="card mat-card">
+                <div class="card-body text-center">
+                    <p class="mat-text-muted mb-4">
+                        You may not have the necessary permissions to view this page, or you might need to sign in with a different account.
+                    </p>
+                    
+                    <div class="d-grid gap-2">
+                        <a href="~/" class="btn mat-button mat-button-primary">
+                            <span class="material-icons me-1">home</span>
+                            Go Home
+                        </a>
+                        <a asp-page="/Account/Login/Index" class="btn mat-button mat-button-outline">
+                            <span class="material-icons me-1">login</span>
+                            Sign In with Different Account
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>

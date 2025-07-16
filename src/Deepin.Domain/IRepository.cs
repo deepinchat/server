@@ -1,5 +1,6 @@
 ﻿namespace Deepin.Domain;
-public interface IRepository<T> where T : Entity, IAggregateRoot
+
+public interface IRepository<T> where T : Entity
 {
     IUnitOfWork UnitOfWork { get; }
     Task<T?> FindByIdAsync(Guid id, CancellationToken cancellationToken = default);

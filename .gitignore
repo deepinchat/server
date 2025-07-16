@@ -364,3 +364,4 @@ FodyWeavers.xsd
 .data/
 .DS_Store
 **/appsettings.Development.json
+nupkgs/

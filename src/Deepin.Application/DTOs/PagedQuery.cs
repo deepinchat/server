@@ -6,11 +6,17 @@ public class PagedQuery
 
     public int Limit { get; set; } = 10;
 
-    public string? OrderBy { get; set; }
+    public SortDirection? SortBy { get; set; }
 
-    public string? OrderByDesc { get; set; }
+    public string? SortKey { get; set; }
 
     public string? Filter { get; set; }
 
     public string? Search { get; set; }
+}
+
+public enum SortDirection
+{
+    Asc,
+    Desc
 }

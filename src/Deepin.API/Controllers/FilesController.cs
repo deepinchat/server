@@ -3,7 +3,6 @@ using Deepin.Application.Commands.Files;
 using Deepin.Application.Interfaces;
 using Deepin.Application.Queries;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Deepin.API.Controllers
@@ -21,7 +20,7 @@ namespace Deepin.API.Controllers
             return Ok(file);
         }
 
-        [HttpGet("download/{id:guid}")]
+        [HttpGet("{id:guid}/download")]
         public async Task<IActionResult> Download(Guid id, CancellationToken cancellationToken)
         {
             var file = await fileQueries.GetByIdAsync(id, cancellationToken);

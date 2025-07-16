@@ -14,17 +14,23 @@ public class ContactEntityTypeConfiguration : IEntityTypeConfiguration<Contact>
 
         builder.HasKey(c => c.Id);
         builder.Property(x => x.Id).HasColumnName("id").HasColumnType("uuid").HasValueGenerator(typeof(SequentialGuidValueGenerator));
-        
+
+        builder.HasIndex(c => new { c.UserId, c.CreatedBy })
+            .AreNullsDistinct(true)
+            .HasDatabaseName("idx_contacts_userid_createdby")
+            .IsUnique();
+
+        builder.Property(c => c.Name).HasColumnName("name");
         builder.Property(c => c.FirstName).HasColumnName("first_name");
         builder.Property(c => c.LastName).HasColumnName("last_name");
         builder.Property(c => c.Company).HasColumnName("company");
-        builder.Property(c => c.UserId).HasColumnName("user_id").HasColumnType("uuid");
+        builder.Property(c => c.UserId).HasColumnName("user_id").HasColumnType("uuid").IsRequired(false);
         builder.Property(c => c.Birthday).HasColumnName("birthday");
         builder.Property(c => c.Email).HasColumnName("email");
         builder.Property(c => c.PhoneNumber).HasColumnName("phone_number");
         builder.Property(c => c.Address).HasColumnName("address");
         builder.Property(c => c.Notes).HasColumnName("notes");
-        builder.Property(c => c.OwnerId).HasColumnName("owner_id").HasColumnType("uuid").IsRequired();
+        builder.Property(c => c.CreatedBy).HasColumnName("created_by").HasColumnType("uuid").IsRequired();
         builder.Property(c => c.IsDeleted).HasColumnName("is_deleted").HasDefaultValue(false);
         builder.Property(c => c.IsBlocked).HasColumnName("is_blocked").HasDefaultValue(false);
         builder.Property(c => c.IsStarred).HasColumnName("is_starred").HasDefaultValue(false);

@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace Deepin.IdentityServer.Pages.Home;
 
-[AllowAnonymous]
+
 public class Index : PageModel
 {
     public Index(IdentityServerLicense? license = null)
