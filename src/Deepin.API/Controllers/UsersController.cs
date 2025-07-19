@@ -37,6 +37,17 @@ namespace Deepin.API.Controllers
             var result = await userQueries.SearchUsersAsync(request.Limit, request.Offset, request.Search, cancellationToken);
             return Ok(result);
         }
+        [HttpGet("identity/{identity}")]
+        [ProducesResponseType(typeof(IEnumerable<UserDto>), StatusCodes.Status200OK)]
+        public async Task<ActionResult<UserDto>> GetUserByIdentity(string identity, CancellationToken cancellationToken = default)
+        {
+            var user = await userQueries.GetUserByIdentityAsync(identity, cancellationToken);
+            if (user == null)
+            {
+                return NotFound();
+            }
+            return Ok(user);
+        }
         [HttpPost("{id:guid}/claims")]
         [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

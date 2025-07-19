@@ -14,6 +14,7 @@ public interface IUsersClient
     Task<UserDto?> UpdateUserClaimsAsync(Guid id, IEnumerable<UserCliamRequest> requests, CancellationToken cancellationToken = default);
     Task<List<UserDto>> BatchGetUsersAsync(BatchGetUsersRequest request, CancellationToken cancellationToken = default);
     Task<IPagedResult<UserDto>> SearchUsersAsync(SearchUsersRequest request, CancellationToken cancellationToken = default);
+    Task<UserDto?> GetUserByIdentityAsync(string identity, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -64,5 +65,15 @@ public class UsersClient : BaseClient, IUsersClient
         }
 
         return await PostAsync<UserDto>($"api/v1/users/{id}/claims", requests, cancellationToken);
+    }
+
+    public async Task<UserDto?> GetUserByIdentityAsync(string identity, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(identity))
+        {
+            throw new ArgumentException("Identity cannot be null or empty.", nameof(identity));
+        }
+
+        return await GetAsync<UserDto>($"api/v1/users/identity/{Uri.EscapeDataString(identity)}", cancellationToken);
     }
 }

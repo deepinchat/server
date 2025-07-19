@@ -1,6 +1,7 @@
 using Dapper;
 using Deepin.Application.DTOs;
 using Deepin.Application.DTOs.Users;
+using Deepin.Application.Extensions;
 using Deepin.Application.Interfaces;
 
 namespace Deepin.Application.Queries;
@@ -14,6 +15,7 @@ public interface IUserQueries
         int offset,
         string? search = null,
         CancellationToken cancellationToken = default);
+    Task<UserDto?> GetUserByIdentityAsync(string identity, CancellationToken cancellationToken = default);
 }
 
 public class UserQueries(IDbConnectionFactory dbConnectionFactory) : IUserQueries
@@ -27,6 +29,37 @@ public class UserQueries(IDbConnectionFactory dbConnectionFactory) : IUserQuerie
         }
         return rows.FirstOrDefault();
     }
+
+    public async Task<UserDto?> GetUserByIdentityAsync(string identity, CancellationToken cancellationToken = default)
+    {
+        using (var connection = await dbConnectionFactory.CreateIdentityDbConnectionAsync(cancellationToken))
+        {
+            var sql = @"
+                SELECT 
+                    u.""Id"",
+                    u.""UserName"",
+                    u.""Email"",
+                    u.""PhoneNumber"",
+                    u.""TwoFactorEnabled"",
+                    u.""EmailConfirmed"",
+                    u.""PhoneNumberConfirmed"",
+                    u.""CreatedAt"",
+                    u.""UpdatedAt""
+                FROM 
+                    users AS u
+                WHERE 
+                    lower(u.""UserName"") = @identity OR lower(u.""Email"") = @identity OR u.""PhoneNumber"" = @identity";
+            var command = new CommandDefinition(sql, new { identity = identity.ToLower() }, cancellationToken: cancellationToken);
+            var row = await connection.QueryFirstOrDefaultAsync<dynamic>(command);
+            if (row == null)
+            {
+                return null;
+            }
+            var claimsRows = await GetUserClaimsAsync([row.Id], cancellationToken);
+            return MapUser(row, claimsRows);
+        }
+    }
+
     public async Task<IEnumerable<UserDto>> GetUsersAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken = default)
     {
         using (var connection = await dbConnectionFactory.CreateIdentityDbConnectionAsync(cancellationToken))
